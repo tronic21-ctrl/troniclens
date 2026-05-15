@@ -1,5 +1,5 @@
 // useWhaleActivity.js
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2'
 const WHALE_THRESHOLD = 0.1
@@ -28,6 +28,7 @@ export function useWhaleActivity() {
   const [chainlinkPrice, setChainlinkPrice] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const currentBlockRef = useRef(10850000)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +59,28 @@ export function useWhaleActivity() {
           }
         } catch {
           console.warn('Chainlink fetch failed')
+        }
+
+        let latestBlock = 10850000 // fallback
+        try {
+          const blockRes = await fetch(
+            `https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jsonrpc: '2.0', id: 2,
+                method: 'eth_blockNumber',
+                params: [],
+              }),
+            }
+          )
+          const blockData = await blockRes.json()
+          if (blockData.result) {
+            latestBlock = parseInt(blockData.result, 16)
+          }
+        } catch {
+          console.warn('Block number fetch failed')
         }
 
         // 2. Fetch dari The Graph
@@ -135,6 +158,7 @@ export function useWhaleActivity() {
         setStats(realStats)
         setChainlinkPrice(chainlinkObj)
         setError(null)
+        currentBlockRef.current = latestBlock
 
       } catch (err) {
         setError('Failed to fetch from The Graph: ' + err.message)
@@ -150,9 +174,7 @@ export function useWhaleActivity() {
   }, [])
 
   const formatTime = (blockNumber) => {
-  // Sepolia ~12 detik per block, current block sekitar 10.85 juta
-  const CURRENT_SEPOLIA_BLOCK = 10850000
-  const blockDiff = Math.max(0, CURRENT_SEPOLIA_BLOCK - blockNumber)
+  const blockDiff = Math.max(0, currentBlockRef.current - blockNumber)
   const seconds = blockDiff * 12
   const minutes = Math.floor(seconds / 60)
   if (minutes < 1) return 'just now'

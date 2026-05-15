@@ -196,6 +196,17 @@ function OverviewContent() {
               🔴 Live
             </span>
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>Refreshes every 30s</span>
+            {/* Sepolia PoC chip */}
+            <span style={{
+              fontSize: '11px', fontWeight: 600,
+              color: COLORS.amber,
+              border: `1px solid ${COLORS.amber}40`,
+              backgroundColor: COLORS.amberDim,
+              padding: '3px 10px', borderRadius: '50px',
+              marginLeft: '8px',
+            }}>
+              Sepolia PoC
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '4px' }}>
             <img
@@ -564,7 +575,15 @@ function ActivityRow({ tx, formatTime, formatAddress, index }) {
           width: '8px', height: '8px', borderRadius: '50%',
           backgroundColor: actionColor, boxShadow: `0 0 8px ${actionColor}`, flexShrink: 0,
         }} />
-        <span style={{ color: COLORS.cyan, fontSize: '13px', fontFamily: 'monospace' }}>
+        <span
+          style={{
+            color: COLORS.cyan, fontSize: '13px', fontFamily: 'monospace',
+            cursor: 'pointer', textDecoration: 'underline',
+            textDecorationStyle: 'dotted', textUnderlineOffset: '3px',
+          }}
+          onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
+          title="View on Blockscout"
+        >
           {formatAddress(tx.address)}
         </span>
       </div>
