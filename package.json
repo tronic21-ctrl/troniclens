@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@0gfoundation/0g-storage-ts-sdk": "^1.2.9",
     "@apollo/client": "^4.1.9",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.13.1",
     "framer-motion": "^12.38.0",
     "graphql": "^16.14.0",
     "react": "^19.2.5",

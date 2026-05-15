@@ -2,6 +2,7 @@
 // TronicLens — DeFi Staking Intelligence Cockpit
 // All sections: Overview, Whale Activity, Staking Stats, Protocol Health, AI Insights, Alerts
 
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWhaleActivity } from '../hooks/useWhaleActivity'
 
@@ -376,12 +377,25 @@ function StakingStatsContent() {
 // ─── Section: Protocol Health ──────────────────────────────────────
 
 function ProtocolHealthContent() {
+  const [lastSnapshot, setLastSnapshot] = useState(null)
+
+  useEffect(() => {
+    fetch('/og-snapshots.json')
+      .then(res => res.json())
+      .then(data => { if (data.length > 0) setLastSnapshot(data[0]) })
+      .catch(() => {})
+  }, [])
+
   const healthChecks = [
     { label: 'StakingContract', status: 'Healthy', detail: 'Sepolia · 0x89907e8F...06926', color: COLORS.green, icon: '✅' },
     { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, icon: '🔐' },
     { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.2 · 100%', color: COLORS.green, icon: '🔵' },
     { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.green, icon: '⛓️' },
-    { label: '0G Storage', status: 'Connected', detail: 'Galileo Testnet · ChainID 16602', color: COLORS.cyan, icon: '🗄️' },
+    { label: '0G Storage', status: 'Connected',
+      detail: lastSnapshot
+        ? `Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · ${lastSnapshot.rootHash.slice(0, 10)}...`
+        : 'Galileo Testnet · ChainID 16602',
+      color: COLORS.purple, icon: '🟣',},
     { label: 'GovernanceContract', status: 'Deployed', detail: 'Sepolia · timelock 120s', color: COLORS.green, icon: '🏛️' },
   ]
 
