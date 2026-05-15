@@ -273,22 +273,36 @@ function OverviewContent() {
   )
 }
 
-// ─── Section: Whale Activity ──────────────────────────────────────
+// ─── Section: Staking Activity ──────────────────────────────────────
 
 function WhaleActivityContent() {
-  const { activities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD } = useWhaleActivity()
+  const { activities, allActivities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD } = useWhaleActivity()
 
   return (
     <div>
       <PageHeader
-        title="Whale Activity"
-        subtitle={`Tracking wallets with ≥ ${WHALE_THRESHOLD} ETH staked · Powered by The Graph`}
-        badge="🐋 Live Feed"
+        title="Staking Activity"
+        subtitle="Live staking transactions on Sepolia · Powered by The Graph"
+        badge="📊 Live Feed"
         badgeColor={COLORS.cyan}
       />
-      <WhaleTable activities={activities} loading={loading} error={error} formatTime={formatTime} formatAddress={formatAddress} WHALE_THRESHOLD={WHALE_THRESHOLD} showAll />
-    </div>
-  )
+      <WhaleTable activities={activities} loading={loading} error={error} formatTime={formatTime} formatAddress={formatAddress} WHALE_THRESHOLD={WHALE_THRESHOLD} />
+      {/* Recent Activity */}
+      <div style={{ marginTop: '24px' }}>
+        <WhaleTable
+          activities={allActivities}
+          loading={loading}
+          error={error}
+          formatTime={formatTime}
+          formatAddress={formatAddress}
+          WHALE_THRESHOLD={WHALE_THRESHOLD}
+          title="📋 All Transactions"
+          subtitle="Complete staking history · Powered by The Graph"
+          showAll={true}
+        />
+      </div>
+      </div>
+      )
 }
 
 // ─── Section: Staking Stats ───────────────────────────────────────
@@ -498,7 +512,7 @@ function AlertsContent() {
 
 // ─── Shared: Whale Table ──────────────────────────────────────────
 
-function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD, showAll = false }) {
+function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD, title, subtitle }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -518,10 +532,10 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       }}>
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: COLORS.text, marginBottom: '2px' }}>
-            🐋 Whale Activity Feed
+            {title || '🐋 Whale Activity Feed'}
           </h2>
           <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
-            Transactions ≥ {WHALE_THRESHOLD} ETH · Powered by The Graph
+            {subtitle || `Transactions ≥ ${WHALE_THRESHOLD} ETH · Powered by The Graph`}
           </p>
         </div>
         <span style={{

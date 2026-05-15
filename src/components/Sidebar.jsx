@@ -42,7 +42,7 @@ const navItems = [
         <circle cx="12" cy="12" r="3"/>
       </svg>
     ),
-    label: 'Whale Activity',
+    label: 'Staking Activity',
     active: false,
     soon: false,
   },

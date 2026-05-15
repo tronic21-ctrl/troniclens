@@ -29,6 +29,7 @@ export function useWhaleActivity() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const currentBlockRef = useRef(10850000)
+  const [allActivities, setAllActivities] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,7 +155,8 @@ export function useWhaleActivity() {
           }),
         } : null
 
-        setActivities(whaleOnly.length > 0 ? whaleOnly : combined)
+        setActivities(whaleOnly)
+        setAllActivities(combined)
         setStats(realStats)
         setChainlinkPrice(chainlinkObj)
         setError(null)
@@ -191,6 +193,7 @@ export function useWhaleActivity() {
 
   return {
     activities,
+    allActivities,   // semua transaksi
     stats,
     chainlinkPrice,
     loading,
