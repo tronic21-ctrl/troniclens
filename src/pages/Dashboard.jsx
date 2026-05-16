@@ -489,21 +489,234 @@ function ProtocolHealthContent() {
 // ─── Section: AI Insights ──────────────────────────────────────────
 
 function AIInsightsContent() {
+  const [insights, setInsights] = useState(null)
+  const [allSnapshots, setAllSnapshots] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
+
+  useEffect(() => {
+    fetch('/og-snapshots.json')
+      .then(res => res.json())
+      .then(data => {
+        setAllSnapshots(data)
+        // Cari snapshot tipe ai-insights terbaru
+        const aiSnap = data.find(s => s.type === 'ai-insights')
+        if (aiSnap) {
+          setInsights(aiSnap)
+          setLastUpdated(new Date(aiSnap.timestamp))
+        }
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const sentimentColor = {
+    'Bullish': COLORS.green,
+    'Neutral': COLORS.amber,
+    'Bearish': COLORS.red,
+  }
+
+  const healthColor = (score) => {
+    if (score >= 70) return COLORS.green
+    if (score >= 40) return COLORS.amber
+    return COLORS.red
+  }
+
   return (
-    <ComingSoonSection
-      title="AI Insights"
-      icon="🤖"
-      color={COLORS.purple}
-      subtitle="0G Compute-powered AI inference will analyze whale patterns, predict staking trends, and surface actionable intelligence for retail stakers."
-      features={[
-        { icon: '🧠', label: 'Whale pattern recognition' },
-        { icon: '📈', label: 'Staking trend prediction' },
-        { icon: '⚡', label: '0G Compute inference' },
-        { icon: '🎯', label: 'Risk scoring per wallet' },
-        { icon: '📊', label: 'Protocol health scoring' },
-        { icon: '🔔', label: 'Anomaly detection' },
-      ]}
-    />
+    <div>
+      <PageHeader
+        title="AI Insights"
+        subtitle="0G Compute-powered Qwen2.5 analysis — whale patterns, protocol health, and staker intelligence stored on-chain"
+        badge="🤖 0G Compute"
+        badgeColor={COLORS.purple}
+      />
+
+      {loading ? (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ textAlign: 'center', padding: '80px 0', color: COLORS.textMuted }}
+        >
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🧠</div>
+          <p style={{ fontSize: '14px' }}>Loading AI analysis...</p>
+        </motion.div>
+      ) : !insights ? (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{
+            backgroundColor: COLORS.card,
+            border: `1px solid ${COLORS.cardBorder}`,
+            borderRadius: '16px',
+            padding: '48px',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🤖</div>
+          <p style={{ color: COLORS.text, fontWeight: 700, marginBottom: '8px' }}>No AI analysis yet</p>
+          <p style={{ color: COLORS.textMuted, fontSize: '13px' }}>
+            Run <code style={{ color: COLORS.cyan }}>node ai-insights.mjs</code> to generate your first analysis
+          </p>
+        </motion.div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* Sentiment + Health Score row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <StatCard
+              label="Protocol Health Score"
+              value={`${insights.healthScore}/100`}
+              sub="Based on staking activity"
+              accent={healthColor(insights.healthScore)}
+              icon="💊"
+            />
+            <StatCard
+              label="Market Sentiment"
+              value={insights.sentiment}
+              sub="Qwen2.5 analysis"
+              accent={sentimentColor[insights.sentiment] || COLORS.amber}
+              icon={insights.sentiment === 'Bullish' ? '📈' : insights.sentiment === 'Bearish' ? '📉' : '➡️'}
+            />
+            <StatCard
+              label="Last Analysis"
+              value={lastUpdated ? lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}
+              sub={lastUpdated ? lastUpdated.toLocaleDateString('id-ID') : '-'}
+              accent={COLORS.purple}
+              icon="🕐"
+            />
+          </div>
+
+          {/* Storage proof card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            style={{
+              backgroundColor: COLORS.card,
+              border: `1px solid ${COLORS.purple}40`,
+              borderRadius: '16px',
+              padding: '20px 24px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '20px' }}>🟣</span>
+                <div>
+                  <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>
+                    AI Result stored on 0G Network
+                  </p>
+                  <p style={{ color: COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace' }}>
+                    {'Root Hash: '}
+                    <span
+                      onClick={() => window.open(
+                        insights.sequence
+                          ? `https://storagescan-galileo.0g.ai/submission/${insights.sequence}`
+                          : 'https://storagescan-galileo.0g.ai',
+                        '_blank'
+                      )}
+                      style={{ color: COLORS.cyan, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted' }}
+                    >
+                      {insights.rootHash?.slice(0, 18)}...
+                    </span>
+                    {insights.sequence && (
+                      <span style={{ color: COLORS.textMuted }}>{` · txSeq: ${insights.sequence}`}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span style={{
+                fontSize: '11px', fontWeight: 600,
+                color: COLORS.purple,
+                border: `1px solid ${COLORS.purple}40`,
+                backgroundColor: `${COLORS.purple}15`,
+                padding: '4px 12px', borderRadius: '50px',
+              }}>
+                ✓ On-chain Verified
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Snapshot history */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            style={{
+              backgroundColor: COLORS.card,
+              border: `1px solid ${COLORS.cardBorder}`,
+              borderRadius: '16px',
+              padding: '20px 24px',
+            }}
+          >
+            <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 700, marginBottom: '16px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+              📋 Analysis History
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {allSnapshots.map((snap, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  backgroundColor: i === 0 ? `${COLORS.purple}10` : 'transparent',
+                  border: `1px solid ${i === 0 ? COLORS.purple + '30' : COLORS.cardBorder}`,
+                  borderRadius: '10px',
+                  flexWrap: 'wrap', gap: '8px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '14px' }}>{snap.type === 'ai-insights' ? '🤖' : '📦'}</span>
+                    <div>
+                      <p style={{ color: COLORS.text, fontSize: '12px', fontWeight: 600 }}>
+                        {snap.type === 'ai-insights' ? 'AI Insights' : 'Whale Snapshot'}
+                        {i === 0 && <span style={{ color: COLORS.purple, marginLeft: '8px', fontSize: '10px' }}>● LATEST</span>}
+                      </p>
+                      <p style={{ color: COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace' }}>
+                        {new Date(snap.timestamp).toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {snap.sentiment && (
+                      <span style={{
+                        fontSize: '11px', fontWeight: 600,
+                        color: sentimentColor[snap.sentiment] || COLORS.amber,
+                        border: `1px solid ${(sentimentColor[snap.sentiment] || COLORS.amber)}40`,
+                        backgroundColor: `${(sentimentColor[snap.sentiment] || COLORS.amber)}15`,
+                        padding: '2px 8px', borderRadius: '50px',
+                      }}>
+                        {snap.sentiment}
+                      </span>
+                    )}
+                    <span
+                      onClick={() => snap.sequence && window.open(`https://storagescan-galileo.0g.ai/submission/${snap.sequence}`, '_blank')}
+                      style={{
+                        color: COLORS.cyan, fontSize: '11px', fontFamily: 'monospace',
+                        cursor: snap.sequence ? 'pointer' : 'default',
+                        textDecoration: snap.sequence ? 'underline' : 'none',
+                        textDecorationStyle: 'dotted',
+                      }}
+                    >
+                      {snap.rootHash?.slice(0, 10)}...
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Powered by badge */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+            style={{ textAlign: 'center', padding: '8px' }}
+          >
+            <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+              Powered by{' '}
+              <span style={{ color: COLORS.purple }}>0G Compute Network</span>
+              {' · '}
+              <span style={{ color: COLORS.cyan }}>Qwen2.5-7b-instruct</span>
+              {' · TEE Verified'}
+            </p>
+          </motion.div>
+
+        </div>
+      )}
+    </div>
   )
 }
 

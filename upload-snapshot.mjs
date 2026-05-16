@@ -100,7 +100,7 @@ async function main() {
   history.unshift({
     timestamp: snapshot.timestamp,
     rootHash,
-    sequence: tx?.submission?.startPos ?? null, // sequence number dari 0G
+    sequence: tx?.txSeq ?? null,
     totalStakers: snapshot.totalStakers,
     totalStakeds: snapshot.stakeds.length,
     totalUnstakeds: snapshot.unstakeds.length,

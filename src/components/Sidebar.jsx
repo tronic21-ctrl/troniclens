@@ -81,7 +81,7 @@ const navItems = [
     ),
     label: 'AI Insights',
     active: false,
-    soon: true,
+    soon: false,
   },
   {
     id: 'alerts',
