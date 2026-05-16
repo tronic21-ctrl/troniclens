@@ -955,6 +955,165 @@ function LoadingPulse() {
 
 // ─── Main Dashboard ───────────────────────────────────────────────
 
+function SettingsContent() {
+  const links = [
+  { 
+    label: 'GitHub', 
+    url: 'https://github.com/tronic21-ctrl/troniclens', 
+    icon: <img src="/logos/GitHub_Invertocat_White.svg" alt="GitHub" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+  },
+  { 
+    label: 'Portfolio', 
+    url: 'https://portofolio-riko-mu.vercel.app', 
+    icon: <span style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>🌐</span>
+  },
+  { 
+    label: 'ETHGlobal', 
+    url: 'https://ethglobal.com/events/ethonline2026', 
+    icon: <img src="/logos/ETHGlobal_Logomark_White.svg" alt="ETHGlobal" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+  },
+  { 
+    label: 'Instagram', 
+    url: 'https://instagram.com/rikotronic', 
+    icon: <img src="/logos/Instagram_Glyph_White.svg" alt="Instagram" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+  },
+]
+
+  const stack = [
+    { name: 'The Graph', desc: 'Subgraph indexing for staking events', color: '#6f4cff', logo: '/logos/The Graph - Logomark - Light.svg' },
+    { name: 'Chainlink', desc: 'ETH/USD price feed on Sepolia', color: '#375bd2', logo: '/logos/Chainlink-Symbol-White.svg' },
+    { name: '0G Storage', desc: 'Decentralized on-chain data storage', color: '#a78bfa', logo: '/logos/0G-Logo-White.svg' },
+    { name: '0G Compute', desc: 'Qwen2.5 AI inference — TEE verified', color: '#a78bfa', logo: '/logos/0G-Logo-White.svg' },
+    { name: 'Ethereum', desc: 'Smart contracts on Sepolia testnet', color: '#627eea', logo: '/logos/eth-diamond-(color-filled).svg' },
+    { name: 'OpenZeppelin', desc: 'ReentrancyGuard security library', color: '#4e5ee4', logo: '/logos/OZ-Logo-FavIconColor.svg' },
+  ]
+
+  return (
+    <div>
+      <PageHeader
+        title="Settings"
+        subtitle="About TronicLens — built for ETHOnline 2026"
+        badge="⚙️ Info"
+        badgeColor={COLORS.textMuted}
+      />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+        {/* About */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '16px', padding: '24px' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+            <img src="/src/assets/troniclens-logo-transparent.svg" alt="TronicLens" style={{ width: '40px', height: '40px' }} />
+            <div>
+              <p style={{ color: COLORS.text, fontSize: '18px', fontWeight: 700 }}>TronicLens</p>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>On-chain intelligence for stakers</p>
+            </div>
+          </div>
+          <p style={{ color: COLORS.textMuted, fontSize: '13px', lineHeight: '1.7' }}>
+            TronicLens is a DeFi analytics dashboard built for <span style={{ color: COLORS.cyan }}>ETHOnline 2026</span>.
+            It combines on-chain data indexing, decentralized AI inference, and verifiable storage
+            to deliver real-time staking intelligence — without any centralized backend.
+          </p>
+          <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['ETHOnline 2026', 'Sepolia Testnet', 'Open Source'].map(tag => (
+              <span key={tag} style={{
+                fontSize: '11px', fontWeight: 600, color: COLORS.cyan,
+                border: `1px solid ${COLORS.cyan}40`, backgroundColor: COLORS.cyanDim,
+                padding: '3px 10px', borderRadius: '50px',
+              }}>{tag}</span>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Builder */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '16px', padding: '24px' }}
+        >
+          <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px' }}>
+            👨‍💻 Builder
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+            <div style={{
+              width: '56px', height: '56px', borderRadius: '50%',
+              border: `2px solid ${COLORS.cyan}40`,
+              overflow: 'hidden', flexShrink: 0,
+              backgroundColor: '#000',
+            }}>
+              <img
+                src="/logos/RT-logo.png"
+                alt="Riko Tronic"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            <div>
+              <p style={{ color: COLORS.text, fontSize: '15px', fontWeight: 700 }}>Riko Tronic</p>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>Economics Graduate · Web3 Developer</p>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>Maluku, Indonesia 🇮🇩</p>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+            {links.map(link => (
+              <a
+                key={link.label}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '10px 14px', borderRadius: '10px',
+                  backgroundColor: COLORS.bg, border: `1px solid ${COLORS.cardBorder}`,
+                  color: COLORS.text, fontSize: '13px', fontWeight: 600,
+                  textDecoration: 'none', transition: 'border-color 0.2s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = COLORS.cyan}
+                onMouseLeave={e => e.currentTarget.style.borderColor = COLORS.cardBorder}
+              >
+                <span style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{link.icon}</span>
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Tech Stack */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '16px', padding: '24px' }}
+        >
+          <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px' }}>
+            Powered By
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {stack.map(item => (
+              <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img src={item.logo} alt={item.name} style={{ width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 }} />
+                <div>
+                  <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>{item.name}</p>
+                  <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Version */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+          style={{ textAlign: 'center', padding: '8px' }}
+        >
+          <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+            TronicLens v1.0.0 · Built for ETHOnline 2026 · Open Source
+          </p>
+        </motion.div>
+
+      </div>
+    </div>
+  )
+}
+
 function Dashboard({ activeItem }) {
   const renderContent = () => {
     switch (activeItem) {
@@ -964,6 +1123,7 @@ function Dashboard({ activeItem }) {
       case 'protocol':     return <ProtocolHealthContent />
       case 'ai':           return <AIInsightsContent />
       case 'alerts':       return <AlertsContent />
+      case 'settings':     return <SettingsContent />
       default:             return <OverviewContent />
     }
   }

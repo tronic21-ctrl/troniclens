@@ -107,7 +107,7 @@ const bottomItems = [
       </svg>
     ),
     label: 'Settings',
-    soon: true,
+    soon: false,
   },
 ]
 
@@ -246,7 +246,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
                 borderRadius: '8px',
                 border: isActive ? `1px solid ${COLORS.activeBorder}` : '1px solid transparent',
                 backgroundColor: isActive ? COLORS.active : 'transparent',
-                color: isActive ? COLORS.cyan : item.soon ? COLORS.textMuted : COLORS.textDim,
+                color: isActive ? COLORS.cyan : item.soon ? '#f59e0b' : COLORS.textDim,
                 cursor: item.soon ? 'default' : 'pointer',
                 width: '100%',
                 textAlign: 'left',
@@ -337,6 +337,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
           <motion.button
             key={item.id}
             whileHover={{ backgroundColor: '#0e2040' }}
+            onClick={() => !item.soon && onItemClick(item.id)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -346,25 +347,27 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
               border: '1px solid transparent',
               backgroundColor: 'transparent',
               color: COLORS.textMuted,
-              cursor: 'default',
+              cursor: item.soon ? 'default' : 'pointer',
               width: '100%',
               justifyContent: collapsed ? 'center' : 'flex-start',
             }}
             title={collapsed ? item.label : ''}
           >
             <span style={{ flexShrink: 0, display: 'flex' }}>{item.icon}</span>
-            {!collapsed && (
-              <>
-                <span style={{ fontSize: '13px', flex: 1, whiteSpace: 'nowrap' }}>{item.label}</span>
-                <span style={{
-                  fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em',
-                  color: '#f59e0b', border: '1px solid #f59e0b40',
-                  backgroundColor: '#f59e0b10', padding: '2px 6px', borderRadius: '4px',
-                }}>
-                  SOON
-                </span>
-              </>
-            )}
+              {!collapsed && (
+                <>
+                  <span style={{ fontSize: '13px', flex: 1, whiteSpace: 'nowrap' }}>{item.label}</span>
+                  {item.soon && (
+                    <span style={{
+                      fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em',
+                      color: '#f59e0b', border: '1px solid #f59e0b40',
+                      backgroundColor: '#f59e0b10', padding: '2px 6px', borderRadius: '4px',
+                    }}>
+                      SOON
+                    </span>
+                  )}
+                </>
+              )}
           </motion.button>
         ))}
       </div>
