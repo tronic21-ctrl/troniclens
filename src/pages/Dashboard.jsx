@@ -179,6 +179,14 @@ function ComingSoonSection({ title, subtitle, icon, color = COLORS.cyan, feature
 // ─── Section: Overview ───────────────────────────────────────────
 
 function OverviewContent() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const { activities, stats, chainlinkPrice, loading, error, formatTime, formatAddress, WHALE_THRESHOLD } = useWhaleActivity()
 
   return (
@@ -186,7 +194,7 @@ function OverviewContent() {
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span style={{
               fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
               color: COLORS.cyan, textTransform: 'uppercase',
@@ -199,14 +207,13 @@ function OverviewContent() {
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>Refreshes every 30s</span>
             {/* Sepolia PoC chip */}
             <span style={{
-              fontSize: '11px', fontWeight: 600,
+              fontSize: '10px', fontWeight: 600,
               color: COLORS.amber,
-              border: `1px solid ${COLORS.amber}40`,
-              backgroundColor: COLORS.amberDim,
-              padding: '3px 10px', borderRadius: '50px',
-              marginLeft: '8px',
+              padding: '2px 7px', borderRadius: '50px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}>
-              Sepolia PoC
+              Sepolia
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '4px' }}>
@@ -242,6 +249,10 @@ function OverviewContent() {
               borderRadius: '12px',
               padding: '14px 20px',
               textAlign: 'right',
+              ...(isMobile
+                ? { width: '100%' }
+                : { minWidth: '200px', maxWidth: '280px' }
+              ),
             }}
           >
             <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
@@ -787,6 +798,14 @@ function AlertsContent() {
 // ─── Shared: Whale Table ──────────────────────────────────────────
 
 function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD, title, subtitle }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -800,7 +819,7 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       }}
     >
       <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
         padding: '20px 24px 16px',
         borderBottom: `1px solid ${COLORS.cardBorder}`,
       }}>
@@ -826,21 +845,25 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
         </span>
       </div>
 
-      {/* Column headers */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 1fr',
-        padding: '10px 24px', borderBottom: `1px solid ${COLORS.cardBorder}`,
-      }}>
-        {['Wallet', 'Action', 'Amount', 'Time'].map(col => (
-          <span key={col} style={{
-            color: COLORS.textMuted, fontSize: '11px', fontWeight: 600,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            textAlign: col === 'Time' ? 'right' : 'left',
-          }}>
-            {col}
-          </span>
-        ))}
-      </div>
+      {/* Column headers — desktop only */}
+      {!isMobile && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(80px, 2fr) minmax(60px, 1fr) minmax(70px, 1.5fr) minmax(50px, 1fr)',
+          padding: '10px 24px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+        }}>
+          {['Wallet', 'Action', 'Amount', 'Time'].map(col => (
+            <span key={col} style={{
+              color: COLORS.textMuted, fontSize: '11px', fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              textAlign: col === 'Time' ? 'right' : 'left',
+            }}>
+              {col}
+            </span>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <LoadingPulse />
@@ -865,53 +888,54 @@ function ActivityRow({ tx, formatTime, formatAddress, index }) {
   const actionBg = isStake ? COLORS.greenDim : COLORS.redDim
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      style={{
-        display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 1fr',
-        alignItems: 'center', padding: '16px 24px',
-        borderBottom: `1px solid ${COLORS.cardBorder}`,
-        cursor: 'default',
-      }}
-      whileHover={{ backgroundColor: '#0e2040' }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.08 }}
+    style={{
+      padding: '12px 16px',
+      borderBottom: `1px solid ${COLORS.cardBorder}`,
+      cursor: 'default',
+    }}
+    whileHover={{ backgroundColor: '#0e2040' }}
+  >
+    {/* Baris 1: wallet + badge */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{
           width: '8px', height: '8px', borderRadius: '50%',
           backgroundColor: actionColor, boxShadow: `0 0 8px ${actionColor}`, flexShrink: 0,
         }} />
         <span
           style={{
-            color: COLORS.cyan, fontSize: '13px', fontFamily: 'monospace',
+            color: COLORS.cyan, fontSize: '12px', fontFamily: 'monospace',
             cursor: 'pointer', textDecoration: 'underline',
             textDecorationStyle: 'dotted', textUnderlineOffset: '3px',
           }}
           onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
-          title="View on Blockscout"
         >
           {formatAddress(tx.address)}
         </span>
       </div>
+      <span style={{
+        fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+        padding: '3px 10px', borderRadius: '50px',
+        backgroundColor: actionBg, color: actionColor, border: `1px solid ${actionColor}40`,
+        flexShrink: 0,
+      }}>
+        {tx.action}
+      </span>
+    </div>
+    {/* Baris 2: amount + time */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: '16px' }}>
       <div>
-        <span style={{
-          fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
-          padding: '4px 10px', borderRadius: '50px',
-          backgroundColor: actionBg, color: actionColor, border: `1px solid ${actionColor}40`,
-        }}>
-          {tx.action}
-        </span>
+        <span style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>{tx.amount} ETH</span>
+        <span style={{ color: COLORS.textMuted, fontSize: '12px', marginLeft: '6px' }}>${tx.amountUSD}</span>
       </div>
-      <div>
-        <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 600 }}>{tx.amount} ETH</p>
-        <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>${tx.amountUSD}</p>
-      </div>
-      <div style={{ textAlign: 'right' }}>
-        <span style={{ color: COLORS.textMuted, fontSize: '13px' }}>{formatTime(tx.timestamp)}</span>
-      </div>
-    </motion.div>
-  )
+      <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>{formatTime(tx.timestamp)}</span>
+    </div>
+  </motion.div>
+)
 }
 
 function LoadingPulse() {
