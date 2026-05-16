@@ -1,7 +1,16 @@
 [
   {
+    "timestamp": "2026-05-15T12:50:51.256Z",
+    "rootHash": "0x1f799cc659e8be9013d0b8aa98eb5032358ddf23f23833fc6d472dbc67807d81",
+    "sequence": 111380,
+    "totalStakers": 1,
+    "totalStakeds": 1,
+    "totalUnstakeds": 0
+  },
+  {
     "timestamp": "2026-05-15T05:05:09.122Z",
     "rootHash": "0x843e59ca4ed519ee2de0fb065576c9077125e5fcabbd7ddb7dcf440adb46750a",
+    "sequence": 110763,
     "totalStakers": 1,
     "totalStakeds": 1,
     "totalUnstakeds": 0

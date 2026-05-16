@@ -448,7 +448,25 @@ function ProtocolHealthContent() {
                   {check.label}
                 </p>
                 <p style={{ color: COLORS.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>
-                  {check.detail}
+                  {check.label === '0G Storage' && lastSnapshot ? (
+                    <>
+                      {`Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · `}
+                      <span
+                        onClick={() => window.open(
+                          lastSnapshot.sequence
+                            ? `https://storagescan-galileo.0g.ai/submission/${lastSnapshot.sequence}`
+                            : 'https://storagescan-galileo.0g.ai',
+                          '_blank'
+                        )}
+                        style={{ color: COLORS.cyan, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                        title="View on 0G Explorer"
+                      >
+                        {lastSnapshot.rootHash.slice(0, 10)}...
+                      </span>
+                    </>
+                  ) : (
+                    check.detail
+                  )}
                 </p>
               </div>
             </div>
