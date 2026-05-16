@@ -245,7 +245,8 @@ function OverviewContent() {
             }}
           >
             <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
-              ⛓️ Chainlink · {chainlinkPrice.pair}
+              <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '12px', height: '12px', objectFit: 'contain', marginRight: '6px', verticalAlign: 'middle', opacity: 0.8 }} />
+                Chainlink · {chainlinkPrice.pair}
             </p>
             <p style={{ color: COLORS.cyan, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>
               ${chainlinkPrice.price}
@@ -325,7 +326,7 @@ function StakingStatsContent() {
           <StatCard label="Active Stakers" value={stats.activeStakers} sub="unique addresses" accent={COLORS.green} delay={0.1} icon="👥" />
           <StatCard label="Whale Wallets" value={stats.whaleCount} sub="> 100 ETH" accent={COLORS.amber} delay={0.15} icon="🐋" />
           <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per wallet" accent={COLORS.purple} delay={0.2} icon="📊" />
-          <StatCard label="ETH Price" value={`$${stats.ethPrice}`} sub="via Chainlink feed" accent={COLORS.cyan} delay={0.25} icon="⛓️" />
+          <StatCard label="ETH Price" value={`$${stats.ethPrice}`} sub="via Chainlink feed" accent={COLORS.cyan} delay={0.25} icon={<img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />}/>
           <StatCard label="Retail Stakers" value={stats.activeStakers - stats.whaleCount} sub="< 100 ETH threshold" accent={COLORS.green} delay={0.3} icon="👤" />
         </div>
       )}
@@ -401,17 +402,51 @@ function ProtocolHealthContent() {
   }, [])
 
   const healthChecks = [
-    { label: 'StakingContract', status: 'Healthy', detail: 'Sepolia · 0x89907e8F...06926', color: COLORS.green, icon: '✅' },
-    { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, icon: '🔐' },
-    { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.2 · 100%', color: COLORS.green, icon: '🔵' },
-    { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.green, icon: '⛓️' },
-    { label: '0G Storage', status: 'Connected',
-      detail: lastSnapshot
-        ? `Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · ${lastSnapshot.rootHash.slice(0, 10)}...`
-        : 'Galileo Testnet · ChainID 16602',
-      color: COLORS.purple, icon: '🟣',},
-    { label: 'GovernanceContract', status: 'Deployed', detail: 'Sepolia · timelock 120s', color: COLORS.green, icon: '🏛️' },
-  ]
+  {
+    label: 'StakingContract',
+    status: 'Healthy',
+    detail: 'Sepolia · 0x89907e8F...06926',
+    color: COLORS.green,
+    logo: '/logos/eth-diamond-(color-filled).svg',
+  },
+  {
+    label: 'ReentrancyGuard',
+    status: 'Active',
+    detail: 'OpenZeppelin v5.6.1',
+    color: COLORS.green,
+    logo: '/logos/OZ-Logo-FavIconColor.svg',
+  },
+  {
+    label: 'The Graph Subgraph',
+    status: 'Synced',
+    detail: 'tronic-staking · v0.0.2 · 100%',
+    color: COLORS.green,
+    logo: '/logos/The Graph - Logomark - Light.svg',
+  },
+  {
+    label: 'Chainlink Feed',
+    status: 'Live',
+    detail: 'ETH/USD · Sepolia · 8 decimals',
+    color: COLORS.cyan,
+    logo: '/logos/Chainlink-Symbol-White.svg',
+  },
+  {
+    label: '0G Storage',
+    status: 'Connected',
+    detail: lastSnapshot
+      ? `Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · ${lastSnapshot.rootHash.slice(0, 10)}...`
+      : 'Galileo Testnet · ChainID 16602',
+    color: COLORS.purple,
+    logo: '/logos/0G-Logo-White.svg',
+  },
+  {
+    label: 'GovernanceContract',
+    status: 'Deployed',
+    detail: 'Sepolia · timelock 120s',
+    color: COLORS.green,
+    logo: '/logos/eth-diamond-(color-filled).svg',
+  },
+]
 
   return (
     <div>
@@ -442,7 +477,11 @@ function ProtocolHealthContent() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <span style={{ fontSize: '20px' }}>{check.icon}</span>
+              <img
+                src={check.logo}
+                alt={check.label}
+                style={{ width: '28px', height: '28px', objectFit: 'contain', opacity: 0.9 }}
+              />
               <div>
                 <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>
                   {check.label}
@@ -598,7 +637,9 @@ function AIInsightsContent() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '20px' }}>🟣</span>
+                <span style={{ display: 'flex', alignItems: 'center' }}>
+                  <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                </span>
                 <div>
                   <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>
                     AI Result stored on 0G Network
@@ -660,7 +701,9 @@ function AIInsightsContent() {
                   flexWrap: 'wrap', gap: '8px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '14px' }}>{snap.type === 'ai-insights' ? '🤖' : '📦'}</span>
+                    <span style={{ fontSize: '14px' }}>{snap.type === 'ai-insights'
+                      ? <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+                      : '📦'}</span>
                     <div>
                       <p style={{ color: COLORS.text, fontSize: '12px', fontWeight: 600 }}>
                         {snap.type === 'ai-insights' ? 'AI Insights' : 'Whale Snapshot'}
@@ -763,7 +806,12 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       }}>
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: COLORS.text, marginBottom: '2px' }}>
-            {title || '🐋 Whale Activity Feed'}
+            {title || (
+            <>
+              <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '16px', height: '16px', objectFit: 'contain', marginRight: '8px', verticalAlign: 'middle' }} />
+              Whale Activity Feed
+            </>
+          )}
           </h2>
           <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
             {subtitle || `Transactions ≥ ${WHALE_THRESHOLD} ETH · Powered by The Graph`}
