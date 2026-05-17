@@ -44,7 +44,7 @@ function SplashScreen({ onDone }) {
 
       {/* Logo */}
       <motion.img
-        src="/src/assets/troniclens-logo-transparent.svg"
+        src="/logos/troniclens-logo-transparent.svg"
         alt="TronicLens"
         initial={{ opacity: 0, scale: 0.6, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

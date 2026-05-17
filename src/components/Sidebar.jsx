@@ -97,6 +97,12 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
         overflow: 'hidden',
       }}
     >
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        overflowY: 'auto',
+      }}>
       {/* Logo area */}
       <div style={{
         padding: collapsed ? '20px 0' : '20px 16px',
@@ -110,7 +116,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
         {!collapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
-              src="/src/assets/troniclens-logo-transparent.svg"
+              src="/logos/troniclens-logo-transparent.svg"
               alt="TronicLens"
               style={{ width: '32px', height: '32px', filter: 'drop-shadow(0 0 6px #38bdf860)', flexShrink: 0 }}
             />
@@ -128,7 +134,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
 
         {collapsed && (
           <img
-            src="/src/assets/troniclens-logo-transparent.svg"
+            src="/logos/troniclens-logo-transparent.svg"
             alt="TronicLens"
             style={{ width: '28px', height: '28px', filter: 'drop-shadow(0 0 6px #38bdf860)' }}
           />
@@ -177,12 +183,14 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
 
       {/* Nav items */}
       <nav style={{
-        flex: 1,
-        padding: compactMode ? '8px 8px' : '12px 8px',
-        display: 'flex', flexDirection: 'column',
-        gap: compactMode ? '1px' : '2px',
-        transition: 'padding 0.2s, gap 0.2s',
-      }}>
+          flex: 1,
+          padding: compactMode ? '8px 8px' : '12px 8px',
+          display: 'flex', flexDirection: 'column',
+          gap: compactMode ? '1px' : '2px',
+          transition: 'padding 0.2s, gap 0.2s',
+          overflowY: 'auto',
+          minHeight: 0,
+        }}>
         {navItems.map((item) => {
           const isActive = activeItem === item.id
           return (
@@ -303,6 +311,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
             </motion.button>
           )
         })}
+        </div>
       </div>
     </motion.aside>
   )
