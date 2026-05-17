@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react'
 
 const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2'
-const WHALE_THRESHOLD = 0.1
 
 const WHALE_QUERY = `
   {
@@ -22,21 +21,24 @@ const WHALE_QUERY = `
   }
 `
 
-export function useWhaleActivity() {
+export function useWhaleActivity({
+  refreshInterval = 30000, // ms — null = auto-refresh OFF
+  whaleThreshold = 0.1,    // ETH
+} = {}) {
   const [activities, setActivities] = useState([])
+  const [allActivities, setAllActivities] = useState([])
   const [stats, setStats] = useState(null)
   const [chainlinkPrice, setChainlinkPrice] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const currentBlockRef = useRef(10850000)
-  const [allActivities, setAllActivities] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
 
-        // 1. Fetch Chainlink dulu supaya ethPrice tersedia
+        // 1. Fetch Chainlink price
         let ethPrice = null
         try {
           const alchemyRes = await fetch(
@@ -62,7 +64,8 @@ export function useWhaleActivity() {
           console.warn('Chainlink fetch failed')
         }
 
-        let latestBlock = 10850000 // fallback
+        // 2. Fetch latest block number
+        let latestBlock = 10850000
         try {
           const blockRes = await fetch(
             `https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_KEY}`,
@@ -84,7 +87,7 @@ export function useWhaleActivity() {
           console.warn('Block number fetch failed')
         }
 
-        // 2. Fetch dari The Graph
+        // 3. Fetch dari The Graph
         const graphRes = await fetch(GRAPH_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -95,20 +98,20 @@ export function useWhaleActivity() {
 
         const { stakeds, unstakeds } = graphData.data
 
-        // 3. Gabung & sort
+        // 4. Gabung & sort
         const combined = [
           ...stakeds.map(tx => ({
             id: tx.id,
             wallet: tx.user,
-            address: tx.user,                              // fix: Dashboard pakai tx.address
+            address: tx.user,
             action: 'STAKE',
             amountEth: parseFloat(tx.amount) / 1e18,
-            amount: (parseFloat(tx.amount) / 1e18).toFixed(4), // fix: Dashboard pakai tx.amount
+            amount: (parseFloat(tx.amount) / 1e18).toFixed(4),
             amountUSD: ethPrice
               ? (parseFloat(tx.amount) / 1e18 * ethPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-              : '0.00',                                    // fix: Dashboard pakai tx.amountUSD
+              : '0.00',
             blockNumber: parseInt(tx.blockNumber),
-            timestamp: parseInt(tx.blockNumber),           // fix: formatTime pakai tx.timestamp
+            timestamp: parseInt(tx.blockNumber),
           })),
           ...unstakeds.map(tx => ({
             id: tx.id,
@@ -125,10 +128,10 @@ export function useWhaleActivity() {
           })),
         ].sort((a, b) => b.blockNumber - a.blockNumber)
 
-        // 4. Filter whale
-        const whaleOnly = combined.filter(tx => tx.amountEth >= WHALE_THRESHOLD)
+        // 5. Filter whale pakai threshold dari settings
+        const whaleOnly = combined.filter(tx => tx.amountEth >= whaleThreshold)
 
-        // 5. Hitung stats
+        // 6. Hitung stats — whaleCount juga pakai threshold dari settings
         const totalStakedEth = stakeds.reduce((sum, tx) => sum + parseFloat(tx.amount) / 1e18, 0)
         const uniqueStakers = new Set([...stakeds.map(tx => tx.user), ...unstakeds.map(tx => tx.user)])
         const whaleWallets = new Set(whaleOnly.map(tx => tx.wallet))
@@ -170,21 +173,35 @@ export function useWhaleActivity() {
       }
     }
 
+    // Fetch pertama kali
     fetchData()
-    const interval = setInterval(fetchData, 30000)
-    return () => clearInterval(interval)
-  }, [])
+
+    // Listen manual refresh event dari Settings
+    const handleManualRefresh = () => fetchData()
+    window.addEventListener('troniclens:refresh', handleManualRefresh)
+
+    // Auto-refresh — kalau null berarti OFF
+    let interval = null
+    if (refreshInterval !== null) {
+      interval = setInterval(fetchData, refreshInterval)
+    }
+
+    return () => {
+      window.removeEventListener('troniclens:refresh', handleManualRefresh)
+      if (interval) clearInterval(interval)
+    }
+  }, [refreshInterval, whaleThreshold]) // re-run kalau settings berubah
 
   const formatTime = (blockNumber) => {
-  const blockDiff = Math.max(0, currentBlockRef.current - blockNumber)
-  const seconds = blockDiff * 12
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
-}
+    const blockDiff = Math.max(0, currentBlockRef.current - blockNumber)
+    const seconds = blockDiff * 12
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 1) return 'just now'
+    if (minutes < 60) return `${minutes}m ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+    return `${Math.floor(hours / 24)}d ago`
+  }
 
   const formatAddress = (address) => {
     if (!address) return '0x????...????'
@@ -193,13 +210,13 @@ export function useWhaleActivity() {
 
   return {
     activities,
-    allActivities,   // semua transaksi
+    allActivities,
     stats,
     chainlinkPrice,
     loading,
     error,
     formatTime,
     formatAddress,
-    WHALE_THRESHOLD,
+    WHALE_THRESHOLD: whaleThreshold, // expose nilai aktif ke UI
   }
 }

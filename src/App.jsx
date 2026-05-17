@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
+import { SettingsProvider } from './context/SettingsContext'
 import './index.css'
 
-function App() {
+function AppInner() {
   const isMobile = () => window.innerWidth < 768
   const [activeItem, setActiveItem] = useState('overview')
   const [collapsed, setCollapsed] = useState(isMobile())
@@ -23,64 +24,63 @@ function App() {
 
   const handleItemClick = (id) => {
     setActiveItem(id)
-    if (mobile) setCollapsed(true) // hanya collapse di mobile
+    if (mobile) setCollapsed(true)
   }
 
   return (
-    <BrowserRouter>
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: '#060d1a',
+      position: 'relative',
+    }}>
       <div style={{
-        display: 'flex',
-        minHeight: '100vh',
-        backgroundColor: '#060d1a',
-        position: 'relative',
+        position: mobile ? 'fixed' : 'relative',
+        top: 0, left: 0,
+        height: '100vh',
+        zIndex: mobile ? 100 : 'auto',
       }}>
-        {/* Sidebar — overlay on mobile, push on desktop */}
-        <div style={{
-          position: mobile ? 'fixed' : 'relative',
-          top: 0,
-          left: 0,
-          height: '100vh',
-          zIndex: mobile ? 100 : 'auto',
-        }}>
-          <Sidebar
-            activeItem={activeItem}
-            onItemClick={handleItemClick}
-            collapsed={collapsed}
-            onCollapse={setCollapsed}
-          />
-        </div>
-
-        {/* Overlay backdrop on mobile when sidebar expanded */}
-        {mobile && !collapsed && (
-          <div
-            onClick={() => setCollapsed(true)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              zIndex: 99,
-            }}
-          />
-        )}
-
-        {/* Main content */}
-        <div
-          id="main-content"
-          style={{
-            flex: 1,
-            marginLeft: mobile ? (collapsed ? '64px' : '0px') : (collapsed ? '64px' : '220px'),
-            minHeight: '100vh',
-            transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            minWidth: 0,
-            overflowX: 'hidden',
-          }}
-        >
-          <Routes>
-            <Route path="/" element={<Dashboard activeItem={activeItem} />} />
-          </Routes>
-        </div>
+        <Sidebar
+          activeItem={activeItem}
+          onItemClick={handleItemClick}
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+        />
       </div>
-    </BrowserRouter>
+
+      {mobile && !collapsed && (
+        <div
+          onClick={() => setCollapsed(true)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99 }}
+        />
+      )}
+
+      <div
+        id="main-content"
+        style={{
+          flex: 1,
+          marginLeft: mobile ? (collapsed ? '64px' : '0px') : (collapsed ? '64px' : '220px'),
+          minHeight: '100vh',
+          transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          minWidth: 0,
+          overflowX: 'hidden',
+        }}
+      >
+        <Routes>
+          <Route path="/" element={<Dashboard activeItem={activeItem} />} />
+        </Routes>
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <SettingsProvider>
+      <BrowserRouter>
+        <AppInner />
+      </BrowserRouter>
+    </SettingsProvider>
   )
 }
 

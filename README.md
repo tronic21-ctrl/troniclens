@@ -2,7 +2,7 @@
 
 > **On-chain intelligence for stakers who refuse to fly blind**
 
-TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. It provides real-time whale activity detection, live price feeds, and decentralized data archiving for ETH stakers on Sepolia.
+TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. It provides real-time whale activity detection, live price feeds, decentralized AI insights, and verifiable data archiving for ETH stakers on Sepolia.
 
 ---
 
@@ -28,7 +28,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 | 🛰️ Radar — Live Activity | **The Graph** | Index & query on-chain staking events |
 | 📡 Altimeter — Price Feed | **Chainlink** | Real-time ETH/USD price from Sepolia oracle |
 | 🗃️ Black Box — Archive | **0G Storage** | Permanent decentralized snapshot of whale activity |
-| 🤖 AI Co-Pilot | **0G Compute** | *(Coming Soon)* AI-powered whale pattern analysis |
+| 🤖 AI Co-Pilot | **0G Compute** | Qwen2.5 AI whale pattern analysis — TEE verified |
 | 🖥️ Cockpit — Dashboard | **React + Vite** | Clean, real-time UI for stakers |
 
 ---
@@ -41,13 +41,14 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - Whale Activity Feed powered by The Graph
 
 ### Staking Activity
-- **Whale Alert Feed** — transactions ≥ 0.1 ETH, powered by The Graph
+- **Whale Alert Feed** — transactions ≥ threshold ETH, powered by The Graph
 - **All Transactions** — complete staking history on-chain
 
 ### Staking Stats
 - Total Value Locked (TVL) with USD conversion via Chainlink
-- Staker distribution: Whale vs Retail breakdown
+- Staker distribution: Whale vs Retail breakdown with progress bars
 - ETH price via Chainlink feed
+- Retail Stakers count (below threshold)
 
 ### Protocol Health
 - Real-time status of all integrations:
@@ -55,22 +56,39 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
   - ReentrancyGuard (OpenZeppelin v5.6.1)
   - The Graph Subgraph (tronic-staking v0.0.2)
   - Chainlink Feed (ETH/USD, 8 decimals)
-  - 0G Storage (last snapshot with clickable root hash)
-  - GovernanceContract
+  - 0G Storage (last snapshot with clickable root hash → StorageScan)
+  - GovernanceContract (Sepolia, timelock 120s)
+
+### AI Insights
+- Protocol Health Score (0–100) via Qwen2.5 on 0G Compute
+- Market Sentiment analysis (Bullish / Neutral / Bearish)
+- AI results stored on-chain via 0G Storage — TEE verified
+- Full analysis history with clickable root hashes
+
+### Settings
+- **Auto Refresh** toggle — live data from The Graph
+- **Refresh Interval** selector — 15s / 30s / 60s
+- **Whale Threshold** filter — 0.05 / 0.1 / 0.5 ETH
+- **Compact Mode** — denser layout, real-time without reload
+- **Manual Refresh** — force fetch from The Graph instantly
+- **Reset to Default** — restore all settings with confirm step
+- All settings persist via `localStorage`, sync globally via React Context
 
 ---
 
 ## 🛠️ Tech Stack
 
 ```
-Frontend:     React + Vite + Framer Motion
+Frontend:       React + Vite + Framer Motion
+State:          React Context (SettingsContext)
 Smart Contract: Solidity ^0.8.0 + OpenZeppelin v5.6.1
-Indexing:     The Graph (subgraph: tronic-staking v0.0.2)
-Price Feed:   Chainlink ETH/USD (Sepolia)
-Storage:      0G Storage (Galileo Testnet)
-RPC:          Alchemy (Sepolia)
-Testing:      Foundry (16/16 tests pass)
-Network:      Ethereum Sepolia Testnet
+Indexing:       The Graph (subgraph: tronic-staking v0.0.2)
+Price Feed:     Chainlink ETH/USD (Sepolia)
+Storage:        0G Storage (Galileo Testnet)
+AI Compute:     0G Compute — Qwen2.5-7b-instruct (TEE verified)
+RPC:            Alchemy (Sepolia)
+Testing:        Foundry (16/16 tests pass)
+Network:        Ethereum Sepolia Testnet
 ```
 
 ---
@@ -80,18 +98,23 @@ Network:      Ethereum Sepolia Testnet
 ```
 troniclens/
 ├── public/
+│   ├── favicon.svg            # TronicLens custom favicon
+│   ├── logos/                 # Brand logos (ETHGlobal, Chainlink, 0G, etc.)
 │   └── og-snapshots.json      # 0G Storage snapshot history
 ├── src/
 │   ├── assets/                # Logo & icons
 │   ├── components/
-│   │   └── Sidebar.jsx        # Collapsible navigation
+│   │   └── Sidebar.jsx        # Collapsible navigation with live indicator
+│   ├── context/
+│   │   └── SettingsContext.jsx # Global settings state (React Context)
 │   ├── hooks/
 │   │   └── useWhaleActivity.js # The Graph + Chainlink data fetching
 │   ├── pages/
-│   │   └── Dashboard.jsx      # All page sections
+│   │   └── Dashboard.jsx      # All 8 page sections
 │   └── utils/
 │       └── mockData.js        # Fallback mock data
 ├── upload-snapshot.mjs        # 0G Storage snapshot upload script
+├── ai-insights.mjs            # 0G Compute AI analysis script
 ├── .env                       # API keys (not committed)
 └── vite.config.js
 ```
@@ -117,8 +140,9 @@ npm install
 Create a `.env` file in the root:
 
 ```env
-VITE_ALCHEMY_KEY=your_alchemy_api_key_here
-PRIVATE_KEY=your_wallet_private_key_here  # Only for upload-snapshot.mjs
+VITE_ALCHEMY_KEY=your_alchemy_api_key
+VITE_ZG_COMPUTE_API_KEY=your_0g_compute_api_key   # For AI Insights
+PRIVATE_KEY=your_wallet_private_key               # Only for upload scripts
 ```
 
 ### Run Development Server
@@ -153,6 +177,18 @@ This will:
 3. Save root hash + sequence to `public/og-snapshots.json`
 4. Dashboard auto-displays the latest snapshot with a clickable link to StorageScan
 
+### Generate AI Insights
+
+```bash
+node ai-insights.mjs
+```
+
+This will:
+1. Fetch latest staking data from The Graph
+2. Send to Qwen2.5-7b-instruct via 0G Compute (TEE verified)
+3. Store AI analysis result on 0G Storage
+4. Dashboard displays Health Score, Sentiment, and full history
+
 ---
 
 ## 🔗 Smart Contracts (Sepolia)
@@ -175,9 +211,9 @@ This will:
 ## 🏆 ETHOnline 2026
 
 **Target Prizes:**
-- **The Graph** — native subgraph integration
-- **0G Network** — 0G Storage + 0G Compute (AI Insights, coming soon)
-- **Chainlink** — live ETH/USD price feed
+- **The Graph** — native subgraph integration (tronic-staking v0.0.2, 100% synced)
+- **0G Network** — 0G Storage snapshots + 0G Compute AI Insights (TEE verified)
+- **Chainlink** — live ETH/USD price feed on Sepolia
 
 **Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))
 
