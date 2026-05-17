@@ -85,7 +85,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
       transition={{ duration: 0.4 }}
       style={{
         width: collapsed ? '64px' : '220px',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         backgroundColor: COLORS.sidebar,
         borderRight: `1px solid ${COLORS.sidebarBorder}`,
         display: 'flex',
@@ -100,7 +100,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        minHeight: '100dvh',
         overflowY: 'auto',
       }}>
       {/* Logo area */}
