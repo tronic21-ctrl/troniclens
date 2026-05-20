@@ -29,16 +29,18 @@ function shortAddr(address) {
 // ─── 0G AI Commentary ─────────────────────────────────────────────
 
 async function fetchAICommentary(alert, ethPrice) {
-  const prompt = `You are a DeFi analyst for TronicLens, an on-chain staking intelligence tool.
+  const prompt = alert.type === 'price'
+  ? `You are a DeFi analyst for TronicLens. Current ETH price from Chainlink oracle is $${alert.amountUSD}. In 2-3 sentences, provide brief market context and what this price level means for stakers. Be concise and actionable.`
+  : `You are a DeFi analyst for TronicLens, an on-chain staking intelligence tool.
 
-Alert detected:
-- Type: ${alert.type}
-- Action: ${alert.action}
-- Amount: ${alert.amountEth.toFixed(4)} ETH ($${alert.amountUSD})
-- Wallet: ${alert.address}
-- ETH Price: $${ethPrice || 'unknown'}
+  Alert detected:
+  - Type: ${alert.type}
+  - Action: ${alert.action}
+  - Amount: ${alert.amountEth.toFixed(4)} ETH ($${alert.amountUSD})
+  - Wallet: ${alert.address}
+  - ETH Price: $${ethPrice || 'unknown'}
 
-In 2-3 sentences, provide a brief, insightful commentary on what this alert might indicate for stakers monitoring this protocol. Be concise and actionable.`
+  In 2-3 sentences, provide a brief, insightful commentary on what this alert might indicate for stakers monitoring this protocol. Be concise and actionable.`
 
   try {
     const res = await fetch('/api/ai-commentary', {
