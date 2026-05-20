@@ -250,7 +250,6 @@ function AlertCard({ alert, ethPrice, index }) {
 // ─── Alerts Content ───────────────────────────────────────────────
 
 export default function AlertsContent() {
-  const { settings } = useSettings()
   const {
     activities,
     stats,
@@ -260,7 +259,7 @@ export default function AlertsContent() {
     formatTime,
     WHALE_THRESHOLD,
   } = useWhaleActivity({
-    refreshInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : null,
+    refreshInterval: null, // Alerts tidak auto-refresh
     whaleThreshold: settings.whaleThreshold,
   })
 
