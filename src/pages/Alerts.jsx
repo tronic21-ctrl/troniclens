@@ -1,0 +1,416 @@
+// src/pages/Alerts.jsx
+// TronicLens — Smart Alerts
+// Data: The Graph + Chainlink | AI Commentary: 0G Compute (Qwen2.5-7b)
+
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useWhaleActivity } from '../hooks/useWhaleActivity'
+import { useSettings } from '../context/SettingsContext'
+import { COLORS } from '../utils/colors'
+
+// ─── Helpers ──────────────────────────────────────────────────────
+
+function timeAgo(blockNumber, currentBlock) {
+  const blockDiff = Math.max(0, currentBlock - blockNumber)
+  const seconds = blockDiff * 12
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
+}
+
+function shortAddr(address) {
+  if (!address) return '0x????...????'
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+// ─── 0G AI Commentary ─────────────────────────────────────────────
+
+async function fetchAICommentary(alert, ethPrice) {
+  const prompt = `You are a DeFi analyst for TronicLens, an on-chain staking intelligence tool.
+
+Alert detected:
+- Type: ${alert.type}
+- Action: ${alert.action}
+- Amount: ${alert.amountEth.toFixed(4)} ETH ($${alert.amountUSD})
+- Wallet: ${alert.address}
+- ETH Price: $${ethPrice || 'unknown'}
+
+In 2-3 sentences, provide a brief, insightful commentary on what this alert might indicate for stakers monitoring this protocol. Be concise and actionable.`
+
+  try {
+    const res = await fetch('https://router-api-testnet.integratenetwork.work/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_ZG_COMPUTE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'qwen/qwen-2.5-7b-instruct',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
+      }),
+    })
+    const data = await res.json()
+    return data?.choices?.[0]?.message?.content || null
+  } catch {
+    return null
+  }
+}
+
+// ─── Alert Card ───────────────────────────────────────────────────
+
+function AlertCard({ alert, ethPrice, index }) {
+  const [aiComment, setAiComment] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const fetchedRef = useRef(false)
+
+  const isStake = alert.action === 'STAKE'
+  const isWhale = alert.type === 'whale'
+  const isPrice = alert.type === 'price'
+
+  const accentColor = isPrice
+    ? COLORS.amber
+    : isStake ? COLORS.green : COLORS.red
+
+  const accentBg = isPrice
+    ? COLORS.amberDim
+    : isStake ? COLORS.greenDim : COLORS.redDim
+
+  const icon = isPrice ? '💰' : isStake ? '🐋' : '🔴'
+
+  const handleAskAI = async () => {
+    if (fetchedRef.current) {
+      setExpanded(e => !e)
+      return
+    }
+    setExpanded(true)
+    setAiLoading(true)
+    fetchedRef.current = true
+    const comment = await fetchAICommentary(alert, ethPrice)
+    setAiComment(comment || 'AI commentary unavailable — 0G Compute may be busy.')
+    setAiLoading(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.07 }}
+      style={{
+        backgroundColor: COLORS.card,
+        border: `1px solid ${accentColor}30`,
+        borderRadius: '14px',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      {/* Top accent line */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
+        background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+      }} />
+
+      <div style={{ padding: '16px 20px' }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{
+              width: '36px', height: '36px', borderRadius: '10px',
+              backgroundColor: accentBg,
+              border: `1px solid ${accentColor}40`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', flexShrink: 0,
+            }}>
+              {icon}
+            </span>
+            <div>
+              <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
+                {isPrice
+                  ? `ETH Price: $${alert.amountUSD}`
+                  : `${alert.action} · ${alert.amountEth.toFixed(4)} ETH`
+                }
+              </p>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
+                {isPrice
+                  ? 'Chainlink ETH/USD Feed'
+                  : (
+                    <span
+                      style={{ color: COLORS.cyan, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                      onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${alert.address}`, '_blank')}
+                    >
+                      {shortAddr(alert.address)}
+                    </span>
+                  )
+                }
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+            <span style={{
+              fontSize: '11px', fontWeight: 700,
+              color: accentColor,
+              backgroundColor: accentBg,
+              border: `1px solid ${accentColor}40`,
+              padding: '3px 10px', borderRadius: '50px',
+              letterSpacing: '0.06em',
+            }}>
+              {isPrice ? 'PRICE' : alert.action}
+            </span>
+            <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+              {alert.timeAgo}
+            </span>
+          </div>
+        </div>
+
+        {/* Amount USD row (for whale alerts) */}
+        {!isPrice && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            backgroundColor: COLORS.bg,
+            border: `1px solid ${COLORS.cardBorder}`,
+            borderRadius: '8px',
+            padding: '8px 12px',
+            marginBottom: '12px',
+          }}>
+            <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>USD Value</span>
+            <span style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>${alert.amountUSD}</span>
+          </div>
+        )}
+
+        {/* Ask AI button */}
+        <button
+          onClick={handleAskAI}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            backgroundColor: expanded ? COLORS.purpleDim : 'transparent',
+            border: `1px solid ${COLORS.purple}40`,
+            borderRadius: '8px',
+            padding: '7px 14px',
+            color: COLORS.purple,
+            fontSize: '12px', fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+            width: '100%',
+            justifyContent: 'center',
+          }}
+        >
+          <span>✦</span>
+          <span>{expanded ? 'Hide AI Insight' : 'Ask 0G AI'}</span>
+        </button>
+
+        {/* AI Commentary */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={{
+                marginTop: '12px',
+                backgroundColor: COLORS.purpleDim,
+                border: `1px solid ${COLORS.purple}30`,
+                borderRadius: '10px',
+                padding: '14px',
+              }}>
+                {aiLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      style={{ width: '14px', height: '14px', border: `2px solid ${COLORS.purple}`, borderTopColor: 'transparent', borderRadius: '50%' }}
+                    />
+                    <span style={{ color: COLORS.purple, fontSize: '13px' }}>Querying 0G Compute...</span>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{ color: COLORS.textDim, fontSize: '13px', lineHeight: 1.7, marginBottom: '8px' }}>
+                      {aiComment}
+                    </p>
+                    <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+                      ✦ Powered by <span style={{ color: COLORS.purple }}>0G Compute</span> · Qwen2.5-7b-instruct
+                    </p>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  )
+}
+
+// ─── Alerts Content ───────────────────────────────────────────────
+
+export default function AlertsContent() {
+  const { settings } = useSettings()
+  const {
+    activities,
+    stats,
+    chainlinkPrice,
+    loading,
+    error,
+    formatTime,
+    WHALE_THRESHOLD,
+  } = useWhaleActivity({
+    refreshInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : null,
+    whaleThreshold: settings.whaleThreshold,
+  })
+
+  // Build alert list dari whale activities + chainlink price
+  const alerts = []
+
+  // Whale alerts dari The Graph
+  activities.forEach(tx => {
+    alerts.push({
+      id: tx.id,
+      type: 'whale',
+      action: tx.action,
+      address: tx.address,
+      amountEth: tx.amountEth,
+      amountUSD: tx.amountUSD,
+      blockNumber: tx.blockNumber,
+      timeAgo: formatTime(tx.blockNumber),
+    })
+  })
+
+  // Price alert dari Chainlink (always show if available)
+  if (chainlinkPrice) {
+    alerts.unshift({
+      id: 'chainlink-price',
+      type: 'price',
+      action: 'PRICE',
+      address: null,
+      amountEth: 0,
+      amountUSD: chainlinkPrice.price,
+      blockNumber: 0,
+      timeAgo: chainlinkPrice.updatedAt,
+    })
+  }
+
+  const ethPrice = stats?.ethPrice
+
+  return (
+    <div>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{ marginBottom: settings.compactMode ? '16px' : '32px' }}
+      >
+        <span style={{
+          display: 'inline-block',
+          fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
+          color: COLORS.amber, textTransform: 'uppercase',
+          border: '1px solid #f59e0b40',
+          padding: '3px 10px', borderRadius: '50px',
+          backgroundColor: '#f59e0b15',
+          marginBottom: settings.compactMode ? '6px' : '10px',
+        }}>
+          Live Monitoring
+        </span>
+        <h1 style={{
+          fontSize: settings.compactMode ? '22px' : '28px', fontWeight: 800,
+          color: COLORS.text,
+          fontFamily: "'DM Sans', sans-serif",
+          letterSpacing: '-0.02em',
+          marginBottom: '6px',
+        }}>
+          Smart Alerts
+        </h1>
+        <p style={{ color: COLORS.textMuted, fontSize: settings.compactMode ? '12px' : '14px' }}>
+          Whale movements ≥ {WHALE_THRESHOLD} ETH · ETH/USD via Chainlink · AI insight via 0G Compute
+        </p>
+      </motion.div>
+
+      {/* Summary bar */}
+      {!loading && !error && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            display: 'flex', gap: '12px', flexWrap: 'wrap',
+            marginBottom: '24px',
+          }}
+        >
+          {[
+            { label: 'Total Alerts', value: alerts.length, color: COLORS.cyan },
+            { label: 'Whale Alerts', value: activities.length, color: COLORS.amber },
+            { label: 'ETH Price', value: chainlinkPrice ? `$${chainlinkPrice.price}` : '—', color: COLORS.green },
+            { label: 'Threshold', value: `≥ ${WHALE_THRESHOLD} ETH`, color: COLORS.purple },
+          ].map((item, i) => (
+            <div key={i} style={{
+              flex: '1', minWidth: '120px',
+              backgroundColor: COLORS.card,
+              border: `1px solid ${COLORS.cardBorder}`,
+              borderRadius: '10px',
+              padding: '12px 16px',
+            }}>
+              <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+                {item.label}
+              </p>
+              <p style={{ color: item.color, fontSize: '18px', fontWeight: 700 }}>
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Alert list */}
+      {loading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[1, 2, 3].map(i => (
+            <motion.div
+              key={i}
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+              style={{ height: '90px', backgroundColor: COLORS.card, borderRadius: '14px' }}
+            />
+          ))}
+        </div>
+      ) : error ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: COLORS.red }}>⚠️ {error}</div>
+      ) : alerts.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{ textAlign: 'center', padding: '60px 20px', color: COLORS.textMuted }}
+        >
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔔</div>
+          <p style={{ fontSize: '16px', fontWeight: 600, color: COLORS.textDim, marginBottom: '8px' }}>No alerts detected</p>
+          <p style={{ fontSize: '13px' }}>Whale threshold: ≥ {WHALE_THRESHOLD} ETH · Adjust in Settings</p>
+        </motion.div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {alerts.map((alert, i) => (
+            <AlertCard key={alert.id} alert={alert} ethPrice={ethPrice} index={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      {!loading && !error && alerts.length > 0 && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          style={{ color: COLORS.textMuted, fontSize: '12px', textAlign: 'center', marginTop: '32px' }}
+        >
+          🐋 The Graph · 💰 Chainlink · ✦ 0G Compute (Qwen2.5-7b)
+        </motion.p>
+      )}
+    </div>
+  )
+}

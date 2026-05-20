@@ -6,26 +6,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWhaleActivity } from '../hooks/useWhaleActivity'
 import { useSettings } from '../context/SettingsContext'
-
-const COLORS = {
-  bg: '#060d1a',
-  card: '#0a1628',
-  cardBorder: '#0e2040',
-  cyan: '#38bdf8',
-  cyanDim: '#38bdf820',
-  cyanGlow: '#38bdf840',
-  red: '#f43f5e',
-  redDim: '#f43f5e20',
-  green: '#10b981',
-  greenDim: '#10b98120',
-  amber: '#f59e0b',
-  amberDim: '#f59e0b15',
-  purple: '#818cf8',
-  purpleDim: '#818cf820',
-  text: '#e2e8f0',
-  textMuted: '#64748b',
-  textDim: '#94a3b8',
-}
+import { COLORS } from '../utils/colors'
+import AlertsContent from './Alerts'
 
 // ─── Shared Components ───────────────────────────────────────────
 
@@ -1231,27 +1213,6 @@ function AIInsightsContent() {
         </div>
       )}
     </div>
-  )
-}
-
-// ─── Section: Alerts ──────────────────────────────────────────────
-
-function AlertsContent() {
-  return (
-    <ComingSoonSection
-      title="Smart Alerts"
-      icon="🔔"
-      color={COLORS.amber}
-      subtitle="Get notified instantly when whale wallets make significant moves. Set custom thresholds and receive on-chain alerts powered by Chainlink Automation."
-      features={[
-        { icon: '🐋', label: 'Whale movement alerts' },
-        { icon: '💰', label: 'Custom ETH thresholds' },
-        { icon: '⛓️', label: 'Chainlink Automation' },
-        { icon: '📱', label: 'Multi-channel notify' },
-        { icon: '⏱️', label: 'Real-time triggers' },
-        { icon: '📋', label: 'Alert history log' },
-      ]}
-    />
   )
 }
 
