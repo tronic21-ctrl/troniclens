@@ -41,18 +41,10 @@ Alert detected:
 In 2-3 sentences, provide a brief, insightful commentary on what this alert might indicate for stakers monitoring this protocol. Be concise and actionable.`
 
   try {
-    const res = await fetch('https://router-api-testnet.integratenetwork.work/v1/chat/completions', {
+    const res = await fetch('/api/ai-commentary', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_ZG_COMPUTE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'qwen/qwen-2.5-7b-instruct',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 150,
-        temperature: 0.7,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
     })
     const data = await res.json()
     return data?.choices?.[0]?.message?.content || null
