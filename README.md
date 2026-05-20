@@ -2,16 +2,17 @@
 
 > **On-chain intelligence for stakers who refuse to fly blind**
 
-TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. It provides real-time whale activity detection, live price feeds, decentralized AI insights, and verifiable data archiving for ETH stakers on Sepolia.
+TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. It provides real-time whale activity detection, live price feeds, smart alerts, decentralized AI insights, and verifiable data archiving for ETH stakers on Sepolia.
 
 ---
 
 ## 🚀 Live Demo
 
-> **Status:** Sepolia PoC — Mainnet coming soon
+> **Status:** BETA Live — Sepolia PoC — Mainnet coming soon
 
 | Resource | Link |
 |----------|------|
+| **Live App** | [troniclens.vercel.app](https://troniclens.vercel.app) |
 | GitHub | [tronic21-ctrl/troniclens](https://github.com/tronic21-ctrl/troniclens) |
 | Subgraph | [tronic-staking v0.0.2](https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2) |
 | StorageScan | [0G Galileo Testnet](https://storagescan-galileo.0g.ai) |
@@ -27,8 +28,9 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 |-----------|------|---------|
 | 🛰️ Radar — Live Activity | **The Graph** | Index & query on-chain staking events |
 | 📡 Altimeter — Price Feed | **Chainlink** | Real-time ETH/USD price from Sepolia oracle |
+| 🔔 Alert System | **Chainlink + The Graph** | Smart alerts for whale movements + ETH price |
 | 🗃️ Black Box — Archive | **0G Storage** | Permanent decentralized snapshot of whale activity |
-| 🤖 AI Co-Pilot | **0G Compute** | Qwen2.5 AI whale pattern analysis — TEE verified |
+| 🤖 AI Co-Pilot | **0G Compute** | Qwen2.5 AI analysis — TEE verified |
 | 🖥️ Cockpit — Dashboard | **React + Vite** | Clean, real-time UI for stakers |
 
 ---
@@ -42,7 +44,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ### Staking Activity
 - **Whale Alert Feed** — transactions ≥ threshold ETH, powered by The Graph
-- **All Transactions** — complete staking history on-chain
+- **All Transactions** — complete staking history, wallet addresses clickable → Blockscout
 
 ### Staking Stats
 - Total Value Locked (TVL) with USD conversion via Chainlink
@@ -54,8 +56,8 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - Real-time status of all integrations:
   - StakingContract (Sepolia, verified)
   - ReentrancyGuard (OpenZeppelin v5.6.1)
-  - The Graph Subgraph (tronic-staking v0.0.2)
-  - Chainlink Feed (ETH/USD, 8 decimals)
+  - The Graph Subgraph (tronic-staking v0.0.2, 100% synced)
+  - Chainlink Feed (ETH/USD, 8 decimals, Live)
   - 0G Storage (last snapshot with clickable root hash → StorageScan)
   - GovernanceContract (Sepolia, timelock 120s)
 
@@ -63,7 +65,15 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - Protocol Health Score (0–100) via Qwen2.5 on 0G Compute
 - Market Sentiment analysis (Bullish / Neutral / Bearish)
 - AI results stored on-chain via 0G Storage — TEE verified
-- Full analysis history with clickable root hashes
+- Full analysis history with clickable root hashes → StorageScan
+
+### Smart Alerts ⚡ *(New in v1.1)*
+- **ETH Price Alert** — live ETH/USD from Chainlink feed with timestamp
+- **Whale Activity Alerts** — transactions ≥ configurable threshold from The Graph
+- **0G AI Commentary** — per-alert AI insight via 0G Compute (Qwen2.5-7b-instruct)
+- Summary bar: Total Alerts, Whale Alerts, ETH Price, Threshold
+- No auto-refresh — stable UI so AI commentary is readable without interruption
+- Powered by Vercel serverless proxy (`api/ai-commentary.js`) for secure 0G Compute calls
 
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
@@ -86,8 +96,10 @@ Indexing:       The Graph (subgraph: tronic-staking v0.0.2)
 Price Feed:     Chainlink ETH/USD (Sepolia)
 Storage:        0G Storage (Galileo Testnet)
 AI Compute:     0G Compute — Qwen2.5-7b-instruct (TEE verified)
+AI Proxy:       Vercel Serverless Function (api/ai-commentary.js)
 RPC:            Alchemy (Sepolia)
 Testing:        Foundry (16/16 tests pass)
+Deployment:     Vercel
 Network:        Ethereum Sepolia Testnet
 ```
 
@@ -97,12 +109,13 @@ Network:        Ethereum Sepolia Testnet
 
 ```
 troniclens/
+├── api/
+│   └── ai-commentary.js       # Vercel serverless proxy — 0G Compute CORS bypass
 ├── public/
 │   ├── favicon.svg            # TronicLens custom favicon
-│   ├── logos/                 # Brand logos (ETHGlobal, Chainlink, 0G, etc.)
+│   ├── logos/                 # Brand logos (ETHGlobal, Chainlink, 0G, The Graph, etc.)
 │   └── og-snapshots.json      # 0G Storage snapshot history
 ├── src/
-│   ├── assets/                # Logo & icons
 │   ├── components/
 │   │   └── Sidebar.jsx        # Collapsible navigation with live indicator
 │   ├── context/
@@ -110,8 +123,10 @@ troniclens/
 │   ├── hooks/
 │   │   └── useWhaleActivity.js # The Graph + Chainlink data fetching
 │   ├── pages/
-│   │   └── Dashboard.jsx      # All 8 page sections
+│   │   ├── Dashboard.jsx      # Main router — all page sections
+│   │   └── Alerts.jsx         # Smart Alerts page (v1.1)
 │   └── utils/
+│       ├── colors.js          # Shared COLORS design tokens
 │       └── mockData.js        # Fallback mock data
 ├── upload-snapshot.mjs        # 0G Storage snapshot upload script
 ├── ai-insights.mjs            # 0G Compute AI analysis script
@@ -126,6 +141,7 @@ troniclens/
 ### Prerequisites
 - Node.js v18+
 - Alchemy API key (Sepolia)
+- 0G Compute API key
 
 ### Install
 
@@ -141,9 +157,11 @@ Create a `.env` file in the root:
 
 ```env
 VITE_ALCHEMY_KEY=your_alchemy_api_key
-VITE_ZG_COMPUTE_API_KEY=your_0g_compute_api_key   # For AI Insights
-PRIVATE_KEY=your_wallet_private_key               # Only for upload scripts
+ZG_COMPUTE_API_KEY=your_0g_compute_api_key   # For AI scripts + Vercel serverless
+PRIVATE_KEY=your_wallet_private_key          # Only for upload scripts
 ```
+
+> **Note:** `ZG_COMPUTE_API_KEY` must also be added to Vercel Environment Variables for the Smart Alerts AI proxy to work in production.
 
 ### Run Development Server
 
@@ -211,11 +229,15 @@ This will:
 ## 🏆 ETHOnline 2026
 
 **Target Prizes:**
-- **The Graph** — native subgraph integration (tronic-staking v0.0.2, 100% synced)
-- **0G Network** — 0G Storage snapshots + 0G Compute AI Insights (TEE verified)
-- **Chainlink** — live ETH/USD price feed on Sepolia
 
-**Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))
+| Sponsor | Prize | Integration |
+|---------|-------|-------------|
+| **0G Network** | $15,000 | 0G Storage snapshots + 0G Compute AI Insights (TEE verified) + Smart Alerts AI proxy |
+| **The Graph** | $15,000 | Native subgraph (tronic-staking v0.0.2, 100% synced) — used across all pages |
+| **Chainlink** | TBD | Live ETH/USD price feed on Sepolia — Overview, Staking Stats, Smart Alerts |
+
+**Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))  
+*Economics Graduate · Web3 Developer · Maluku, Indonesia*
 
 ---
 
