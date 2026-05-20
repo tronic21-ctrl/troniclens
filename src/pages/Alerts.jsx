@@ -68,14 +68,14 @@ function AlertCard({ alert, ethPrice, index }) {
   const isPrice = alert.type === 'price'
 
   const accentColor = isPrice
-    ? COLORS.amber
+    ? '#627eea'
     : isStake ? COLORS.green : COLORS.red
 
   const accentBg = isPrice
-    ? COLORS.amberDim
+    ? '#627eea20'
     : isStake ? COLORS.greenDim : COLORS.redDim
 
-  const icon = isPrice ? '💰' : isStake ? '🐋' : '🔴'
+  const icon = isStake ? '🐋' : '🔴'
 
   const handleAskAI = async () => {
     if (fetchedRef.current) {
@@ -120,7 +120,11 @@ function AlertCard({ alert, ethPrice, index }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '18px', flexShrink: 0,
             }}>
-              {icon}
+              {isPrice ? (
+                <img src="/logos/eth-diamond-(color-filled).svg" alt="ETH" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              ) : (
+                <span>{icon}</span>
+              )}
             </span>
             <div>
               <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
@@ -402,7 +406,16 @@ export default function AlertsContent() {
           transition={{ delay: 0.6 }}
           style={{ color: COLORS.textMuted, fontSize: '12px', textAlign: 'center', marginTop: '32px' }}
         >
-          🐋 The Graph · 💰 Chainlink · ✦ 0G Compute (Qwen2.5-7b)
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>The Graph</span>
+            <span style={{ color: COLORS.textMuted }}>·</span>
+            <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>Chainlink</span>
+            <span style={{ color: COLORS.textMuted }}>·</span>
+            <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>0G Compute (Qwen2.5-7b)</span>
+          </div>
         </motion.p>
       )}
     </div>
