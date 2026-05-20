@@ -250,6 +250,7 @@ function AlertCard({ alert, ethPrice, index }) {
 // ─── Alerts Content ───────────────────────────────────────────────
 
 export default function AlertsContent() {
+  const { settings } = useSettings()
   const {
     activities,
     stats,
