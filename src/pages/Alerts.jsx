@@ -127,15 +127,18 @@ function AlertCard({ alert, ethPrice, index }) {
               )}
             </span>
             <div>
-              <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
+              <p style={{ 
+                color: COLORS.text, fontSize: '14px', fontWeight: 700, marginBottom: '2px',
+                wordBreak: 'break-word',
+              }}>
                 {isPrice
-                  ? `ETH Price: $${alert.amountUSD}`
+                  ? <><span style={{ color: COLORS.textMuted, fontWeight: 600 }}>ETH / USD</span>{' '}
+                      <span style={{ color: COLORS.cyan }}>${alert.amountUSD}</span></>
                   : `${alert.action} · ${alert.amountEth.toFixed(4)} ETH`
                 }
               </p>
               <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
-                {isPrice
-                  ? 'Chainlink ETH/USD Feed'
+                {isPrice ? 'Chainlink · ETH/USD'
                   : (
                     <span
                       style={{ color: COLORS.cyan, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
@@ -251,6 +254,15 @@ function AlertCard({ alert, ethPrice, index }) {
 
 export default function AlertsContent() {
   const { settings } = useSettings()
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const {
     activities,
     stats,
@@ -291,7 +303,9 @@ export default function AlertsContent() {
       amountEth: 0,
       amountUSD: chainlinkPrice.price,
       blockNumber: 0,
-      timeAgo: chainlinkPrice.updatedAt,
+      timeAgo: isMobile 
+        ? chainlinkPrice.updatedAt.split(',')[1]?.trim().replace(' UTC', '') + ' UTC'
+        : chainlinkPrice.updatedAt,
     })
   }
 
