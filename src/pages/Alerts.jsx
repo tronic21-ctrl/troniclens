@@ -277,7 +277,7 @@ export default function AlertsContent() {
       amountEth: tx.amountEth,
       amountUSD: tx.amountUSD,
       blockNumber: tx.blockNumber,
-      timeAgo: formatTime(tx.blockNumber),
+      timeAgo: formatTime(tx.timestamp),
     })
   })
 

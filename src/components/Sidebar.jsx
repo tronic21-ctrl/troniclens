@@ -169,12 +169,16 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
           display: 'flex', alignItems: 'center', gap: '8px',
           transition: 'padding 0.2s',
         }}>
-          <div style={{
-            width: '6px', height: '6px', borderRadius: '50%',
-            backgroundColor: COLORS.green,
-            boxShadow: `0 0 6px ${COLORS.green}`,
-            flexShrink: 0,
-          }} />
+          <motion.div
+            animate={{ opacity: [1, 0.3, 1], scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              backgroundColor: COLORS.green,
+              boxShadow: `0 0 6px ${COLORS.green}`,
+              flexShrink: 0,
+            }}
+          />
           <span style={{ color: COLORS.textDim, fontSize: '11px', letterSpacing: '0.08em' }}>
             {liveText}
           </span>

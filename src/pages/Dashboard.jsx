@@ -838,10 +838,41 @@ function OverviewContent() {
 
 function WhaleActivityContent() {
   const { settings } = useSettings()
-  const { activities, allActivities, loading, error, formatTime, formatAddress } = useWhaleActivity({
+  const { activities, allActivities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD } = useWhaleActivity({
     refreshInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : null,
     whaleThreshold: settings.whaleThreshold,
   })
+
+  // ── Simulate Whale — dev only ──────────────────────────────────
+  const [simLoading, setSimLoading] = useState(false)
+  const [simStatus, setSimStatus] = useState(null)
+
+  const simulateWhale = async () => {
+  if (!window.ethereum) return setSimStatus('❌ No wallet detected')
+  try {
+    setSimLoading(true)
+    setSimStatus(null)
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    const from = accounts[0]
+
+    const STAKE_AMOUNT_WEI = BigInt('100000000000000000') // 0.1 ETH exact
+
+    await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from,
+        to: '0x89907e8F6CB6468b2c8fe2d3814249881eF06926',
+        value: '0x' + STAKE_AMOUNT_WEI.toString(16),
+        data: '0x3a4b66f1', // ✅ selector stake() dari Blockscout
+      }],
+    })
+    setSimStatus('✅ Whale tx sent! Wait ~30s for The Graph to index...')
+  } catch (err) {
+    setSimStatus('❌ ' + (err.message || 'Transaction rejected'))
+  } finally {
+    setSimLoading(false)
+  }
+}
 
   return (
     <div>
@@ -851,6 +882,57 @@ function WhaleActivityContent() {
         badge="Live Feed"
         badgeColor={COLORS.cyan}
       />
+
+      {/* Simulate Whale — only in dev */}
+      {import.meta.env.DEV && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: COLORS.card,
+            border: `1px solid ${COLORS.amber}40`,
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div>
+            <p style={{ color: COLORS.amber, fontSize: '13px', fontWeight: 700, marginBottom: '2px' }}>
+              🧪 Dev Mode — Simulate Whale Transaction
+            </p>
+            <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
+              Send 0.1 ETH stake to trigger whale detection · Only visible in localhost
+            </p>
+            {simStatus && (
+              <p style={{ color: COLORS.textDim, fontSize: '12px', marginTop: '6px' }}>{simStatus}</p>
+            )}
+          </div>
+          <button
+            onClick={simulateWhale}
+            disabled={simLoading}
+            style={{
+              backgroundColor: COLORS.amber,
+              color: COLORS.bg,
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 20px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: simLoading ? 'not-allowed' : 'pointer',
+              opacity: simLoading ? 0.7 : 1,
+              flexShrink: 0,
+            }}
+          >
+            {simLoading ? 'Sending...' : '🐋 Simulate Whale'}
+          </button>
+        </motion.div>
+      )}
+
       <WhaleTable activities={activities} loading={loading} error={error} formatTime={formatTime} formatAddress={formatAddress} WHALE_THRESHOLD={settings.whaleThreshold} />
       <div style={{ marginTop: '24px' }}>
         <WhaleTable
@@ -967,7 +1049,14 @@ function ProtocolHealthContent() {
   }, [])
 
   const healthChecks = [
-    { label: 'StakingContract', status: 'Healthy', detail: 'Sepolia · 0x89907e8F...06926', color: COLORS.green, logo: '/logos/eth-diamond-(color-filled).svg' },
+    { 
+      label: 'StakingContract', 
+      status: 'Healthy', 
+      detail: '0x89907e8F6CB6468b2c8fe2d3814249881eF06926',
+      link: 'https://eth-sepolia.blockscout.com/address/0x89907e8F6CB6468b2c8fe2d3814249881eF06926',
+      color: COLORS.green, 
+      logo: '/logos/eth-diamond-(color-filled).svg' 
+    },
     { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, logo: '/logos/OZ-Logo-FavIconColor.svg' },
     { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.2 · 100%', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
     { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
@@ -1013,7 +1102,22 @@ function ProtocolHealthContent() {
               <div>
                 <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>{check.label}</p>
                 <p style={{ color: COLORS.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>
-                  {check.label === '0G Storage' && lastSnapshot ? (
+                  {check.link ? (
+                    <span
+                      onClick={() => window.open(check.link, '_blank')}
+                      style={{
+                        color: COLORS.cyan,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        textDecorationStyle: 'dotted',
+                        textUnderlineOffset: '3px',
+                      }}
+                      title="View on Blockscout"
+                    >
+                      {check.detail.length > 30 ? `${check.detail.slice(0, 10)}...${check.detail.slice(-6)}` : check.detail}
+                    </span>
+                  ) : check.label === '0G Storage' && lastSnapshot ? (
+                    // existing 0G Storage logic tidak berubah
                     <>
                       {`Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · `}
                       <span
@@ -1108,8 +1212,44 @@ function AIInsightsContent() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <StatCard label="Protocol Health Score" value={`${insights.healthScore}/100`} sub="Based on staking activity" accent={healthColor(insights.healthScore)} />
-            <StatCard label="Market Sentiment" value={insights.sentiment} sub="Qwen2.5 analysis" accent={sentimentColor[insights.sentiment] || COLORS.amber} />
+            <StatCard
+              label="Protocol Health Score"
+              value={`${insights.healthScore}/100`}
+              sub="Based on staking activity"
+              accent={healthColor(insights.healthScore)}
+              icon={
+                <div style={{
+                  width: '28px', height: '28px',
+                  borderRadius: '50%',
+                  border: `3px solid ${healthColor(insights.healthScore)}`,
+                  backgroundColor: `${healthColor(insights.healthScore)}20`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '12px',
+                  boxShadow: `0 0 10px ${healthColor(insights.healthScore)}60`,
+                }}>
+                  {insights.healthScore >= 70 ? '✓' : insights.healthScore >= 40 ? '!' : '✕'}
+                </div>
+              }
+            />
+            <StatCard
+              label="Market Sentiment"
+              value={insights.sentiment}
+              sub="Qwen2.5 analysis"
+              accent={sentimentColor[insights.sentiment] || COLORS.amber}
+              icon={
+                <div style={{
+                  width: '28px', height: '28px',
+                  borderRadius: '50%',
+                  border: `3px solid ${sentimentColor[insights.sentiment] || COLORS.amber}`,
+                  backgroundColor: `${sentimentColor[insights.sentiment] || COLORS.amber}20`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px',
+                  boxShadow: `0 0 10px ${sentimentColor[insights.sentiment] || COLORS.amber}60`,
+                }}>
+                  {insights.sentiment === 'Bullish' ? '↑' : insights.sentiment === 'Bearish' ? '↓' : '-'}
+                </div>
+              }
+            />
             <StatCard label="Last Analysis" value={lastUpdated ? lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'} sub={lastUpdated ? lastUpdated.toLocaleDateString('id-ID') : '-'} accent={COLORS.purple} />
           </div>
 
