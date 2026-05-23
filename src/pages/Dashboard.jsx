@@ -68,8 +68,8 @@ function StatCard({ label, value, sub, accent = COLORS.cyan, delay = 0, icon }) 
       }}
     >
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-        background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+        background: accent || COLORS.cyan
       }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: compact ? '6px' : '12px' }}>
         <p style={{ color: COLORS.textMuted, fontSize: compact ? '10px' : '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -664,7 +664,7 @@ function AboutContent() {
             <div>
               <p style={{ color: COLORS.text, fontSize: '15px', fontWeight: 700 }}>Riko Tronic</p>
               <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>Economics Graduate · Web3 Developer</p>
-              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>Maluku, Indonesia 🇮🇩</p>
+              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>Indonesia 🇮🇩</p>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
