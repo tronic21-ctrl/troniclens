@@ -113,6 +113,15 @@ async function saveToStorage(aiResult) {
 
   const [tree, treeErr] = await memData.merkleTree()
   if (treeErr) throw new Error(`Merkle tree error: ${treeErr}`)
+
+  // ✅ Upload ke 0G Storage
+  const indexer = new Indexer(INDEXER_RPC)
+  const [tx, uploadErr] = await indexer.upload(memData, RPC_URL, signer)
+  if (uploadErr) throw new Error(`Upload error: ${uploadErr}`)
+
+  const rootHash = tree.rootHash()
+  console.log(`✅ Uploaded to 0G Storage — txSeq: ${tx?.txSeq}, rootHash: ${rootHash}`)
+
   // Append ke og-snapshots.json supaya muncul di dashboard
   const historyPath = join(__dirname, 'public', 'og-snapshots.json')
   let history = []
