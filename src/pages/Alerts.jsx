@@ -105,8 +105,8 @@ function AlertCard({ alert, ethPrice, index }) {
     >
       {/* Top accent line */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '2px',
-        background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+        background: accentColor,
       }} />
 
       <div style={{ padding: '16px 20px' }}>
@@ -158,7 +158,7 @@ function AlertCard({ alert, ethPrice, index }) {
               color: accentColor,
               backgroundColor: accentBg,
               border: `1px solid ${accentColor}40`,
-              padding: '3px 10px', borderRadius: '50px',
+              padding: '3px 10px', borderRadius: '4px',
               letterSpacing: '0.06em',
             }}>
               {isPrice ? 'PRICE' : alert.action}
@@ -325,7 +325,7 @@ export default function AlertsContent() {
           fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
           color: COLORS.amber, textTransform: 'uppercase',
           border: '1px solid #f59e0b40',
-          padding: '3px 10px', borderRadius: '50px',
+          padding: '3px 10px', borderRadius: '4px',
           backgroundColor: '#f59e0b15',
           marginBottom: settings.compactMode ? '6px' : '10px',
         }}>

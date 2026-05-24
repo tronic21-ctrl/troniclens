@@ -27,7 +27,7 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
           fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
           color: badgeColor, textTransform: 'uppercase',
           border: `1px solid ${badgeColor}40`,
-          padding: '3px 10px', borderRadius: '50px',
+          padding: '3px 10px', borderRadius: '4px',
           backgroundColor: `${badgeColor}15`,
           marginBottom: compact ? '6px' : '10px',
         }}>
@@ -108,7 +108,7 @@ function ComingSoonSection({ title, subtitle, icon, color = COLORS.cyan, feature
         fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
         color: COLORS.amber, textTransform: 'uppercase',
         border: '1px solid #f59e0b40', backgroundColor: '#f59e0b10',
-        padding: '4px 12px', borderRadius: '50px', marginBottom: '16px',
+        padding: '4px 12px', borderRadius: '4px', marginBottom: '16px',
         display: 'inline-block',
       }}>
         Coming Soon
@@ -172,7 +172,7 @@ function Toggle({ value, onChange }) {
       onClick={() => onChange(!value)}
       style={{
         width: '44px', height: '24px',
-        borderRadius: '12px',
+        borderRadius: '8px',
         backgroundColor: value ? COLORS.cyan : COLORS.cardBorder,
         position: 'relative',
         cursor: 'pointer',
@@ -333,7 +333,7 @@ function SettingsContent() {
               fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
               color: COLORS.textDim, textTransform: 'uppercase',
               border: `1px solid ${COLORS.cardBorder}`,
-              padding: '3px 10px', borderRadius: '50px',
+              padding: '3px 10px', borderRadius: '4px',
               backgroundColor: `${COLORS.cardBorder}40`,
               marginBottom: '10px',
             }}>
@@ -539,7 +539,7 @@ function SettingsContent() {
           style={{
             backgroundColor: `${COLORS.cyan}08`,
             border: `1px solid ${COLORS.cyan}20`,
-            borderRadius: '12px',
+            borderRadius: '8px',
             padding: '14px 20px',
             display: 'flex',
             alignItems: 'center',
@@ -634,7 +634,7 @@ function AboutContent() {
               <span key={tag} style={{
                 fontSize: '11px', fontWeight: 600, color: COLORS.cyan,
                 border: `1px solid ${COLORS.cyan}40`, backgroundColor: COLORS.cyanDim,
-                padding: '3px 10px', borderRadius: '50px',
+                padding: '3px 10px', borderRadius: '4px',
               }}>{tag}</span>
             ))}
           </div>
@@ -754,7 +754,7 @@ function OverviewContent() {
               fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
               color: COLORS.cyan, textTransform: 'uppercase',
               border: `1px solid ${COLORS.cyan}40`,
-              padding: '3px 10px', borderRadius: '50px',
+              padding: '3px 10px', borderRadius: '4px',
               backgroundColor: COLORS.cyanDim,
             }}>
               Live
@@ -800,7 +800,7 @@ function OverviewContent() {
             style={{
               backgroundColor: COLORS.card,
               border: `1px solid ${COLORS.cardBorder}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               padding: '14px 20px',
               textAlign: 'right',
               ...(isMobile ? { width: '100%' } : { minWidth: '200px', maxWidth: '280px' }),
@@ -891,7 +891,7 @@ function WhaleActivityContent() {
           style={{
             backgroundColor: COLORS.card,
             border: `1px solid ${COLORS.amber}40`,
-            borderRadius: '12px',
+            borderRadius: '8px',
             padding: '16px 20px',
             marginBottom: '24px',
             display: 'flex',
@@ -1088,7 +1088,7 @@ function ProtocolHealthContent() {
             style={{
               backgroundColor: COLORS.card,
               border: `1px solid ${COLORS.cardBorder}`,
-              borderRadius: '12px',
+              borderRadius: '8px',
               padding: settings.compactMode ? '12px 20px' : '18px 24px',
               display: 'flex',
               alignItems: 'center',
@@ -1140,7 +1140,7 @@ function ProtocolHealthContent() {
             <span style={{
               fontSize: '12px', fontWeight: 600, color: check.color,
               border: `1px solid ${check.color}40`, backgroundColor: `${check.color}15`,
-              padding: '4px 12px', borderRadius: '50px',
+              padding: '4px 12px', borderRadius: '4px',
             }}>
               {check.status}
             </span>
@@ -1274,7 +1274,7 @@ function AIInsightsContent() {
                   </p>
                 </div>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: COLORS.purple, border: `1px solid ${COLORS.purple}40`, backgroundColor: `${COLORS.purple}15`, padding: '4px 12px', borderRadius: '50px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: COLORS.purple, border: `1px solid ${COLORS.purple}40`, backgroundColor: `${COLORS.purple}15`, padding: '4px 12px', borderRadius: '4px' }}>
                 ✓ On-chain Verified
               </span>
             </div>
@@ -1307,7 +1307,16 @@ function AIInsightsContent() {
                     <div>
                       <p style={{ color: COLORS.text, fontSize: '12px', fontWeight: 600 }}>
                         {snap.type === 'ai-insights' ? 'AI Insights' : 'Whale Snapshot'}
-                        {i === 0 && <span style={{ color: COLORS.purple, marginLeft: '8px', fontSize: '10px' }}>● LATEST</span>}
+                        {i === 0 && (
+                        <span style={{ color: COLORS.purple, marginLeft: '8px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <motion.span
+                            animate={{ opacity: [1, 0.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: COLORS.purple, display: 'inline-block', flexShrink: 0 }}
+                          />
+                          LATEST
+                        </span>
+                      )}
                       </p>
                       <p style={{ color: COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace' }}>
                         {new Date(snap.timestamp).toLocaleString('id-ID')}
@@ -1321,7 +1330,7 @@ function AIInsightsContent() {
                         color: sentimentColor[snap.sentiment] || COLORS.amber,
                         border: `1px solid ${(sentimentColor[snap.sentiment] || COLORS.amber)}40`,
                         backgroundColor: `${(sentimentColor[snap.sentiment] || COLORS.amber)}15`,
-                        padding: '2px 8px', borderRadius: '50px',
+                        padding: '2px 8px', borderRadius: '4px',
                       }}>
                         {snap.sentiment}
                       </span>
@@ -1392,8 +1401,21 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
             {subtitle || `Transactions ≥ ${WHALE_THRESHOLD} ETH · Powered by The Graph`}
           </p>
         </div>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: COLORS.green, border: `1px solid ${COLORS.green}40`, backgroundColor: COLORS.greenDim, padding: '4px 10px', borderRadius: '50px' }}>
-          ● Live Data
+        <span style={{ 
+          fontSize: '11px', fontWeight: 600, color: COLORS.green, 
+          border: `1px solid ${COLORS.green}40`, backgroundColor: COLORS.greenDim, 
+          padding: '4px 10px', borderRadius: '4px',
+          display: 'flex', alignItems: 'center', gap: '5px'
+        }}>
+          <motion.span
+            animate={{ opacity: [1, 0.2, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ 
+              width: '6px', height: '6px', borderRadius: '50%', 
+              backgroundColor: COLORS.green, display: 'inline-block', flexShrink: 0
+            }}
+          />
+          Live Data
         </span>
       </div>
 
@@ -1456,7 +1478,7 @@ function ActivityRow({ tx, formatTime, formatAddress, index }) {
             {formatAddress(tx.address)}
           </span>
         </div>
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 10px', borderRadius: '50px', backgroundColor: actionBg, color: actionColor, border: `1px solid ${actionColor}40`, flexShrink: 0 }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 10px', borderRadius: '4px', backgroundColor: actionBg, color: actionColor, border: `1px solid ${actionColor}40`, flexShrink: 0 }}>
           {tx.action}
         </span>
       </div>
