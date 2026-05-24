@@ -75,6 +75,16 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - No auto-refresh — stable UI so AI commentary is readable without interruption
 - Powered by Vercel serverless proxy (`api/ai-commentary.js`) for secure 0G Compute calls
 
+### What's New (v1.2 — May 2026)
+- Fixed Simulate Whale button (correct stake() selector)
+- Total Staked now shows current TVL (not historical)
+- Health Score & Market Sentiment color indicators
+- Clickable contract address → Blockscout
+- Animated live pulse dots across all pages
+- Flat badge design (reduced AI-generated feel)
+- Mobile alert layout improvements
+- 0G Storage upload fixed in ai-insights.mjs
+
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
 - **Refresh Interval** selector — 15s / 30s / 60s
@@ -240,6 +250,13 @@ This will:
 *Economics Graduate · Web3 Developer · Maluku, Indonesia*
 
 ---
+
+## ⚠️ Known Limitations
+
+- **StakingContract timestamp bug** — stakeTimestamp dapat tercatat tidak akurat pada beberapa Sepolia nodes. Workaround: set rewardRate ke 0 via owner sebelum unstake, lalu restore ke 1.
+- **AI Insights manual refresh** — data diperbarui manual via `node ai-insights.mjs`, belum auto-scheduled. Planned: cron job di v2.
+- **Single staker testnet data** — semua data dari wallet developer sendiri di Sepolia. Mainnet deployment planned post-hackathon.
+- **0G Compute balance** — 0G Compute Testnet memerlukan OG token di Main Account. Top up via faucet jika balance habis.
 
 ## 📄 License
 

@@ -172,7 +172,7 @@ function Toggle({ value, onChange }) {
       onClick={() => onChange(!value)}
       style={{
         width: '44px', height: '24px',
-        borderRadius: '8px',
+        borderRadius: '12px',
         backgroundColor: value ? COLORS.cyan : COLORS.cardBorder,
         position: 'relative',
         cursor: 'pointer',
