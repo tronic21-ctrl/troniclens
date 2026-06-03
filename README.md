@@ -247,7 +247,7 @@ This will:
 | **Chainlink** | TBD | Live ETH/USD price feed on Sepolia — Overview, Staking Stats, Smart Alerts |
 
 **Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))  
-*Economics Graduate · Web3 Developer · Maluku, Indonesia*
+*Economics Graduate · Web3 Developer · Indonesia*
 
 ---
 

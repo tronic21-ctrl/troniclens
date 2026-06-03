@@ -7,13 +7,125 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useWhaleActivity } from '../hooks/useWhaleActivity'
 import { useSettings } from '../context/SettingsContext'
 import { COLORS } from '../utils/colors'
+import { useAccount } from 'wagmi'
+import { useAppKit } from '@reown/appkit/react'
 import AlertsContent from './Alerts'
+import GovernanceContent from './Governance'
 
 // ─── Shared Components ───────────────────────────────────────────
+
+function WalletButton() {
+  const { address, isConnected } = useAccount()
+  const { open } = useAppKit()
+
+  return isConnected ? (
+    <motion.button
+      whileHover={{ scale: 1.03, boxShadow: '0 0 16px #10b98125' }}
+      whileTap={{ scale: 0.97 }}
+      onClick={() => open({ view: 'Account' })}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '7px 14px',
+        background: 'linear-gradient(135deg, #10b98115, #10b98108)',
+        border: '1px solid #10b98135',
+        borderRadius: '8px',
+        cursor: 'pointer',
+      }}
+    >
+      <motion.div
+        animate={{ opacity: [1, 0.4, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981', flexShrink: 0, marginRight: '4px' }}
+      />
+      <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace', letterSpacing: '0.03em' }}>
+        {`${address.slice(0, 6)}...${address.slice(-4)}`}
+      </span>
+    </motion.button>
+  ) : (
+    <motion.button
+      whileHover={{ scale: 1.03, boxShadow: '0 0 20px #818cf830' }}
+      whileTap={{ scale: 0.97 }}
+      onClick={() => open()}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '8px',
+        padding: '7px 16px',
+        background: 'linear-gradient(135deg, #818cf8, #38bdf8)',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        position: 'relative', overflow: 'hidden',
+        boxShadow: '0 0 20px #818cf840',
+      }}
+    >
+      <motion.div
+        animate={{ x: ['-100%', '200%'] }}
+        transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '40%', height: '100%',
+          background: 'linear-gradient(90deg, transparent, #ffffff08, transparent)',
+          pointerEvents: 'none',
+        }}
+      />
+      <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: 600, letterSpacing: '0.04em' }}>
+        Connect Wallet
+      </span>
+    </motion.button>
+  )
+}
+
+function PageBackground({ accentColor = '#38bdf8', accentColor2 = '#818cf8' }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      pointerEvents: 'none', zIndex: 0,
+      overflow: 'hidden',
+    }}>
+      <motion.div
+        animate={{ opacity: [0.15, 0.28, 0.15], scale: [1, 1.07, 1] }}
+        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        style={{
+          position: 'absolute', top: '-120px', right: '-80px',
+          width: '460px', height: '460px', borderRadius: '50%',
+          background: `radial-gradient(circle, ${accentColor}28 0%, ${accentColor}08 50%, transparent 70%)`,
+          filter: 'blur(48px)',
+          willChange: 'transform, opacity',
+        }}
+      />
+      <motion.div
+        animate={{ opacity: [0.08, 0.18, 0.08], scale: [1, 1.05, 1] }}
+        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
+        style={{
+          position: 'absolute', bottom: '-100px', left: '80px',
+          width: '380px', height: '380px', borderRadius: '50%',
+          background: `radial-gradient(circle, ${accentColor2}20 0%, ${accentColor2}08 50%, transparent 70%)`,
+          filter: 'blur(56px)',
+          willChange: 'transform, opacity',
+        }}
+      />
+      <motion.div
+        animate={{ opacity: [0.05, 0.11, 0.05] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        style={{
+          position: 'absolute', top: '35%', left: '35%',
+          width: '500px', height: '260px', borderRadius: '50%',
+          background: `radial-gradient(ellipse, ${accentColor}12 0%, transparent 70%)`,
+          filter: 'blur(60px)',
+          willChange: 'opacity',
+        }}
+      />
+    </div>
+  )
+}
 
 function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
   const { settings } = useSettings()
   const compact = settings.compactMode
+  const isLive = badge && (
+    badge.toLowerCase().includes('live') || 
+    badge.toLowerCase().includes('monitoring') || 
+    badge.toLowerCase().includes('feed')
+  )
   return (
     <motion.div
       initial={{ opacity: 0, y: -16 }}
@@ -23,14 +135,38 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
     >
       {badge && (
         <span style={{
-          display: 'inline-block',
-          fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
-          color: badgeColor, textTransform: 'uppercase',
-          border: `1px solid ${badgeColor}40`,
-          padding: '3px 10px', borderRadius: '4px',
-          backgroundColor: `${badgeColor}15`,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: badgeColor,
+          textTransform: 'uppercase',
+          border: `1px solid ${badgeColor}35`,
+          padding: '3px 12px',
+          borderRadius: '50px',
+          background: `linear-gradient(135deg, ${badgeColor}1a, ${badgeColor}05)`,
+          boxShadow: `0 0 12px ${badgeColor}10`,
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           marginBottom: compact ? '6px' : '10px',
         }}>
+          {isLive && (
+            <motion.span
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: badgeColor,
+                boxShadow: `0 0 8px ${badgeColor}`,
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+            />
+          )}
           {badge}
         </span>
       )}
@@ -57,6 +193,7 @@ function StatCard({ label, value, sub, accent = COLORS.cyan, delay = 0, icon }) 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
       style={{
         backgroundColor: COLORS.card,
         border: `1px solid ${COLORS.cardBorder}`,
@@ -68,9 +205,19 @@ function StatCard({ label, value, sub, accent = COLORS.cyan, delay = 0, icon }) 
       }}
     >
       <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-        background: accent || COLORS.cyan
-      }} />
+          position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+          background: accent || COLORS.cyan, opacity: 0.7,
+        }} />
+        <motion.div
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: delay * 1.5 }}
+          style={{
+            position: 'absolute', top: 0, left: 0,
+            width: '40%', height: '1px',
+            background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
+            pointerEvents: 'none',
+          }}
+        />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: compact ? '6px' : '12px' }}>
         <p style={{ color: COLORS.textMuted, fontSize: compact ? '10px' : '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           {label}
@@ -751,12 +898,35 @@ function OverviewContent() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span style={{
-              fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
-              color: COLORS.cyan, textTransform: 'uppercase',
-              border: `1px solid ${COLORS.cyan}40`,
-              padding: '3px 10px', borderRadius: '4px',
-              backgroundColor: COLORS.cyanDim,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              color: COLORS.cyan,
+              textTransform: 'uppercase',
+              border: `1px solid ${COLORS.cyan}35`,
+              padding: '3px 12px',
+              borderRadius: '50px',
+              background: `linear-gradient(135deg, ${COLORS.cyan}1a, ${COLORS.cyan}05)`,
+              boxShadow: `0 0 12px ${COLORS.cyan}10`,
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
             }}>
+              <motion.span
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: COLORS.cyan,
+                  boxShadow: `0 0 8px ${COLORS.cyan}`,
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}
+              />
               Live
             </span>
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>
@@ -823,8 +993,8 @@ function OverviewContent() {
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: settings.compactMode ? '8px' : '16px', marginBottom: settings.compactMode ? '16px' : '32px' }}>
           <StatCard label="Total Staked" value={`${stats.totalStaked} ETH`} sub={`$${stats.totalStakedUSD}`} accent={COLORS.cyan} delay={0.1} />
-          <StatCard label="Active Stakers" value={stats.activeStakers} sub="unique addresses" accent={COLORS.green} delay={0.15}  />
-          <StatCard label="Whale Wallets" value={stats.whaleCount} sub={`≥ ${settings.whaleThreshold} ETH threshold`} accent={COLORS.amber} delay={0.2} icon="" />
+          <StatCard label="Active Stakers" value={stats.activeStakers} sub="unique addresses" accent={COLORS.cyan} delay={0.15}  />
+          <StatCard label="Whale Wallets" value={stats.whaleCount} sub={`≥ ${settings.whaleThreshold} ETH threshold`} accent={COLORS.cyan} delay={0.2} icon="" />
           <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per staker" accent={COLORS.cyan} delay={0.25} icon="" />
         </div>
       )}
@@ -971,11 +1141,11 @@ function StakingStatsContent() {
 
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: settings.compactMode ? '8px' : '16px', marginBottom: settings.compactMode ? '16px' : '32px' }}>
-          <StatCard label="Total Value Locked" value={`${stats.totalStaked} ETH`} sub={`$${stats.totalStakedUSD}`} accent={COLORS.cyan} delay={0.05} />
+          <StatCard label="Total Value Locked" value={`${stats.totalStaked} ETH`} sub={`$${stats.totalStakedUSD}`} accent={COLORS.green} delay={0.05} />
           <StatCard label="Active Stakers" value={stats.activeStakers} sub="unique addresses" accent={COLORS.green} delay={0.1} />
-          <StatCard label="Whale Wallets" value={stats.whaleCount} sub={`≥ ${settings.whaleThreshold} ETH`} accent={COLORS.amber} delay={0.15} icon="" />
-          <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per wallet" accent={COLORS.purple} delay={0.2} icon="" />
-          <StatCard label="ETH Price" value={`$${stats.ethPrice}`} sub="via Chainlink feed" accent={COLORS.cyan} delay={0.25} icon={<img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />} />
+          <StatCard label="Whale Wallets" value={stats.whaleCount} sub={`≥ ${settings.whaleThreshold} ETH`} accent={COLORS.green} delay={0.15} icon="" />
+          <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per wallet" accent={COLORS.green} delay={0.2} icon="" />
+          <StatCard label="ETH Price" value={`$${stats.ethPrice}`} sub="via Chainlink feed" accent={COLORS.green} delay={0.25} icon={<img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />} />
           <StatCard label="Retail Stakers" value={stats.activeStakers - stats.whaleCount} sub={`< ${settings.whaleThreshold} ETH threshold`} accent={COLORS.green} delay={0.3} />
         </div>
       )}
@@ -1008,8 +1178,19 @@ function StakingStatsContent() {
                   initial={{ width: 0 }}
                   animate={{ width: `${(stats.whaleCount / stats.activeStakers) * 100}%` }}
                   transition={{ duration: 1, delay: 0.5 }}
-                  style={{ height: '100%', backgroundColor: COLORS.amber, borderRadius: '4px' }}
-                />
+                  style={{ height: '100%', backgroundColor: COLORS.amber, borderRadius: '4px', position: 'relative', overflow: 'hidden' }}
+                >
+                  <motion.div
+                    animate={{ x: ['-100%', '200%'] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', repeatDelay: 0.8 }}
+                    style={{
+                      position: 'absolute', top: 0, left: 0,
+                      width: '40%', height: '100%',
+                      background: 'linear-gradient(90deg, transparent, #ffffff40, transparent)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </motion.div>
               </div>
             </div>
             <div>
@@ -1057,6 +1238,22 @@ function ProtocolHealthContent() {
       color: COLORS.green, 
       logo: '/logos/eth-diamond-(color-filled).svg' 
     },
+    { 
+      label: 'GovernanceContract', 
+      status: 'Healthy', 
+      detail: '0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8',
+      link: 'https://eth-sepolia.blockscout.com/address/0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8',
+      color: COLORS.green, 
+      logo: '/logos/eth-diamond-(color-filled).svg' 
+    },
+    { 
+      label: 'StakingGovernance', 
+      status: 'Healthy', 
+      detail: '0xa830b86ce9D994A3c5b95F124c9a008e74b75080',
+      link: 'https://eth-sepolia.blockscout.com/address/0xa830b86ce9D994A3c5b95F124c9a008e74b75080',
+      color: COLORS.green, 
+      logo: '/logos/eth-diamond-(color-filled).svg' 
+    },
     { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, logo: '/logos/OZ-Logo-FavIconColor.svg' },
     { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.2 · 100%', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
     { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
@@ -1067,7 +1264,6 @@ function ProtocolHealthContent() {
         : 'Galileo Testnet · ChainID 16602',
       color: COLORS.purple, logo: '/logos/0G-Logo-White.svg',
     },
-    { label: 'GovernanceContract', status: 'Deployed', detail: 'Sepolia · timelock 120s', color: COLORS.green, logo: '/logos/eth-diamond-(color-filled).svg' },
   ]
 
   return (
@@ -1075,33 +1271,66 @@ function ProtocolHealthContent() {
       <PageHeader
         title="Protocol Health"
         subtitle="Real-time status of all TronicLens smart contracts and integrations"
-        badge="On-chain"
+        badge="On-Chain"
         badgeColor={COLORS.green}
       />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: settings.compactMode ? '6px' : '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: settings.compactMode ? '8px' : '14px' }}>
         {healthChecks.map((check, i) => (
           <motion.div
             key={check.label}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: i * 0.07 }}
+            transition={{ duration: 0.4, delay: i * 0.06 }}
             style={{
               backgroundColor: COLORS.card,
               border: `1px solid ${COLORS.cardBorder}`,
-              borderRadius: '8px',
-              padding: settings.compactMode ? '12px 20px' : '18px 24px',
+              borderRadius: '14px',
+              padding: settings.compactMode ? '14px 20px' : '20px 24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
+              gap: '16px',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.25s ease',
+            }}
+            whileHover={{
+              backgroundColor: `${COLORS.card}ef`,
+              borderColor: `${check.color}30`,
+              boxShadow: `inset 4px 0 0 ${check.color}, 0 8px 32px rgba(0,0,0,0.35), 0 0 16px ${check.color}05`,
+              paddingLeft: settings.compactMode ? '24px' : '28px', // slide-in for human touch!
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <img src={check.logo} alt={check.label} style={{ width: '28px', height: '28px', objectFit: 'contain', opacity: 0.9 }} />
-              <div>
-                <p style={{ color: COLORS.text, fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>{check.label}</p>
-                <p style={{ color: COLORS.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0, flex: 1 }}>
+              <div style={{
+                width: '38px', height: '38px', borderRadius: '10px',
+                backgroundColor: `${check.color}0a`,
+                border: `1px solid ${check.color}18`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <img src={check.logo} alt={check.label} style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.95 }} />
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <p style={{ 
+                  color: COLORS.text, 
+                  fontSize: '14px', 
+                  fontWeight: 600, 
+                  marginBottom: '3px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
+                }}>{check.label}</p>
+                <p style={{ 
+                  color: COLORS.textMuted, 
+                  fontSize: '12px', 
+                  fontFamily: 'monospace',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
+                }}>
                   {check.link ? (
                     <span
                       onClick={() => window.open(check.link, '_blank')}
@@ -1111,13 +1340,15 @@ function ProtocolHealthContent() {
                         textDecoration: 'underline',
                         textDecorationStyle: 'dotted',
                         textUnderlineOffset: '3px',
+                        transition: 'color 0.2s',
                       }}
                       title="View on Blockscout"
+                      onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                      onMouseLeave={e => e.currentTarget.style.color = COLORS.cyan}
                     >
                       {check.detail.length > 30 ? `${check.detail.slice(0, 10)}...${check.detail.slice(-6)}` : check.detail}
                     </span>
                   ) : check.label === '0G Storage' && lastSnapshot ? (
-                    // existing 0G Storage logic tidak berubah
                     <>
                       {`Last snapshot: ${new Date(lastSnapshot.timestamp).toLocaleString('id-ID')} · `}
                       <span
@@ -1127,8 +1358,17 @@ function ProtocolHealthContent() {
                             : 'https://storagescan-galileo.0g.ai',
                           '_blank'
                         )}
-                        style={{ color: COLORS.cyan, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
+                        style={{
+                          color: COLORS.cyan,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          textDecorationStyle: 'dotted',
+                          textUnderlineOffset: '3px',
+                          transition: 'color 0.2s',
+                        }}
                         title="View on 0G Explorer"
+                        onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                        onMouseLeave={e => e.currentTarget.style.color = COLORS.cyan}
                       >
                         {lastSnapshot.rootHash.slice(0, 10)}...
                       </span>
@@ -1138,10 +1378,36 @@ function ProtocolHealthContent() {
               </div>
             </div>
             <span style={{
-              fontSize: '12px', fontWeight: 600, color: check.color,
-              border: `1px solid ${check.color}40`, backgroundColor: `${check.color}15`,
-              padding: '4px 12px', borderRadius: '4px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              color: check.color,
+              textTransform: 'uppercase',
+              border: `1px solid ${check.color}35`,
+              padding: '4px 12px',
+              borderRadius: '50px',
+              background: `linear-gradient(135deg, ${check.color}15, ${check.color}03)`,
+              boxShadow: `0 0 10px ${check.color}08`,
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              flexShrink: 0,
             }}>
+              <motion.span
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  backgroundColor: check.color,
+                  boxShadow: `0 0 6px ${check.color}`,
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}
+              />
               {check.status}
             </span>
           </motion.div>
@@ -1255,8 +1521,33 @@ function AIInsightsContent() {
 
           <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.purple}40`, borderRadius: '16px', padding: '20px 24px' }}
+            whileHover={{
+              backgroundColor: `${COLORS.card}ef`,
+              borderColor: `${COLORS.purple}60`,
+              boxShadow: `inset 4px 0 0 ${COLORS.purple}, 0 8px 32px rgba(0,0,0,0.35), 0 0 16px ${COLORS.purple}05`,
+              paddingLeft: '28px',
+            }}
+            style={{ 
+              backgroundColor: COLORS.card, 
+              border: `1px solid ${COLORS.purple}30`, 
+              borderRadius: '16px', 
+              padding: '20px 24px', 
+              position: 'relative', 
+              overflow: 'hidden',
+              transition: 'all 0.25s ease',
+            }}
           >
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ duration: 1.6, delay: 0.5, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute', top: 0, left: 0,
+                width: '30%', height: '100%',
+                background: `linear-gradient(90deg, transparent, ${COLORS.purple}12, transparent)`,
+                pointerEvents: 'none',
+              }}
+            />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
@@ -1274,8 +1565,37 @@ function AIInsightsContent() {
                   </p>
                 </div>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: COLORS.purple, border: `1px solid ${COLORS.purple}40`, backgroundColor: `${COLORS.purple}15`, padding: '4px 12px', borderRadius: '4px' }}>
-                ✓ On-chain Verified
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                color: COLORS.purple,
+                textTransform: 'uppercase',
+                border: `1px solid ${COLORS.purple}35`,
+                padding: '4px 12px',
+                borderRadius: '50px',
+                background: `linear-gradient(135deg, ${COLORS.purple}15, ${COLORS.purple}03)`,
+                boxShadow: `0 0 10px ${COLORS.purple}08`,
+                backdropFilter: 'blur(4px)',
+                WebkitBackdropFilter: 'blur(4px)',
+              }}>
+                <motion.span
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    backgroundColor: COLORS.purple,
+                    boxShadow: `0 0 6px ${COLORS.purple}`,
+                    display: 'inline-block',
+                    flexShrink: 0,
+                  }}
+                />
+                Verified On-chain
               </span>
             </div>
           </motion.div>
@@ -1289,14 +1609,24 @@ function AIInsightsContent() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {allSnapshots.map((snap, i) => (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  backgroundColor: i === 0 ? `${COLORS.purple}10` : 'transparent',
-                  border: `1px solid ${i === 0 ? COLORS.purple + '30' : COLORS.cardBorder}`,
-                  borderRadius: '10px',
-                  flexWrap: 'wrap', gap: '8px',
-                }}>
+                <motion.div
+                  key={i}
+                  whileHover={{
+                    backgroundColor: i === 0 ? `${COLORS.purple}15` : 'rgba(255,255,255,0.02)',
+                    borderColor: i === 0 ? `${COLORS.purple}40` : 'rgba(255,255,255,0.12)',
+                    paddingLeft: '18px',
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    backgroundColor: i === 0 ? `${COLORS.purple}10` : 'transparent',
+                    border: `1px solid ${i === 0 ? COLORS.purple + '30' : COLORS.cardBorder}`,
+                    borderRadius: '12px',
+                    flexWrap: 'wrap', gap: '8px',
+                    transition: 'all 0.2s ease',
+                    cursor: 'default',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       {snap.type === 'ai-insights'
@@ -1308,11 +1638,24 @@ function AIInsightsContent() {
                       <p style={{ color: COLORS.text, fontSize: '12px', fontWeight: 600 }}>
                         {snap.type === 'ai-insights' ? 'AI Insights' : 'Whale Snapshot'}
                         {i === 0 && (
-                        <span style={{ color: COLORS.purple, marginLeft: '8px', fontSize: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          color: COLORS.purple,
+                          letterSpacing: '0.05em',
+                          border: `1px solid ${COLORS.purple}30`,
+                          padding: '1px 6px',
+                          borderRadius: '50px',
+                          backgroundColor: `${COLORS.purple}10`,
+                          marginLeft: '8px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}>
                           <motion.span
-                            animate={{ opacity: [1, 0.2, 1] }}
+                            animate={{ opacity: [1, 0.4, 1] }}
                             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                            style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: COLORS.purple, display: 'inline-block', flexShrink: 0 }}
+                            style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: COLORS.purple, display: 'inline-block', flexShrink: 0 }}
                           />
                           LATEST
                         </span>
@@ -1326,12 +1669,31 @@ function AIInsightsContent() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {snap.sentiment && (
                       <span style={{
-                        fontSize: '11px', fontWeight: 600,
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
                         color: sentimentColor[snap.sentiment] || COLORS.amber,
-                        border: `1px solid ${(sentimentColor[snap.sentiment] || COLORS.amber)}40`,
-                        backgroundColor: `${(sentimentColor[snap.sentiment] || COLORS.amber)}15`,
-                        padding: '2px 8px', borderRadius: '4px',
+                        textTransform: 'uppercase',
+                        border: `1px solid ${sentimentColor[snap.sentiment] || COLORS.amber}35`,
+                        padding: '3px 10px',
+                        borderRadius: '50px',
+                        background: `linear-gradient(135deg, ${sentimentColor[snap.sentiment] || COLORS.amber}15, ${sentimentColor[snap.sentiment] || COLORS.amber}03)`,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}>
+                        <motion.span
+                          animate={{ opacity: [1, 0.4, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                          style={{
+                            width: '4px',
+                            height: '4px',
+                            borderRadius: '50%',
+                            backgroundColor: sentimentColor[snap.sentiment] || COLORS.amber,
+                            display: 'inline-block',
+                            flexShrink: 0,
+                          }}
+                        />
                         {snap.sentiment}
                       </span>
                     )}
@@ -1347,7 +1709,7 @@ function AIInsightsContent() {
                       {snap.rootHash?.slice(0, 10)}...
                     </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -1402,17 +1764,23 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
           </p>
         </div>
         <span style={{ 
-          fontSize: '11px', fontWeight: 600, color: COLORS.green, 
-          border: `1px solid ${COLORS.green}40`, backgroundColor: COLORS.greenDim, 
-          padding: '4px 10px', borderRadius: '4px',
-          display: 'flex', alignItems: 'center', gap: '5px'
+          fontSize: '10px', fontWeight: 700, color: COLORS.green, 
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+          border: `1px solid ${COLORS.green}35`,
+          background: `linear-gradient(135deg, ${COLORS.green}1a, ${COLORS.green}05)`,
+          boxShadow: `0 0 12px ${COLORS.green}10`,
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          padding: '3px 12px', borderRadius: '50px',
+          display: 'inline-flex', alignItems: 'center', gap: '6px'
         }}>
           <motion.span
-            animate={{ opacity: [1, 0.2, 1] }}
+            animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
             style={{ 
               width: '6px', height: '6px', borderRadius: '50%', 
-              backgroundColor: COLORS.green, display: 'inline-block', flexShrink: 0
+              backgroundColor: COLORS.green, display: 'inline-block', flexShrink: 0,
+              boxShadow: `0 0 8px ${COLORS.green}`
             }}
           />
           Live Data
@@ -1447,7 +1815,7 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       ) : (
         <AnimatePresence>
           {activities.map((tx, i) => (
-            <ActivityRow key={tx.id} tx={tx} formatTime={formatTime} formatAddress={formatAddress} index={i} />
+            <ActivityRow key={tx.id} tx={tx} formatTime={formatTime} formatAddress={formatAddress} index={i} isMobile={isMobile} />
           ))}
         </AnimatePresence>
       )}
@@ -1455,39 +1823,165 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
   )
 }
 
-function ActivityRow({ tx, formatTime, formatAddress, index }) {
+function ActivityRow({ tx, formatTime, formatAddress, index, isMobile }) {
   const isStake = tx.action === 'STAKE'
   const actionColor = isStake ? COLORS.green : COLORS.red
   const actionBg = isStake ? COLORS.greenDim : COLORS.redDim
+  const humanTime = formatTime(tx.timestamp)
 
+  if (isMobile) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: index * 0.05 }}
+        style={{
+          padding: '16px 20px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: `${actionColor}03`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{
+              width: '24px', height: '24px', borderRadius: '50%',
+              backgroundColor: actionBg,
+              border: `1px solid ${actionColor}30`,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              {isStake ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={actionColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <polyline points="19 12 12 19 5 12" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={actionColor} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
+              )}
+            </span>
+            <span
+              style={{
+                color: COLORS.cyan,
+                fontSize: '13px',
+                fontFamily: 'monospace',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textDecorationStyle: 'dotted',
+                textUnderlineOffset: '3px',
+              }}
+              onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
+            >
+              {formatAddress(tx.address)}
+            </span>
+          </div>
+          <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>{humanTime}</span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '6px', paddingLeft: '34px' }}>
+          <span style={{
+            color: COLORS.text,
+            fontSize: '13px',
+            fontWeight: 500,
+            lineHeight: '1.4'
+          }}>
+            {isStake ? 'Staked' : 'Unstaked'}{' '}
+            <strong style={{ color: actionColor, fontWeight: 700 }}>{tx.amount} ETH</strong>
+          </span>
+          <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+            (≈ ${tx.amountUSD})
+          </span>
+        </div>
+      </motion.div>
+    )
+  }
+
+  // Desktop layout (aligns with table columns)
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      style={{ padding: '12px 16px', borderBottom: `1px solid ${COLORS.cardBorder}`, cursor: 'default' }}
-      whileHover={{ backgroundColor: '#0e2040' }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(80px, 2fr) minmax(60px, 1fr) minmax(70px, 1.5fr) minmax(50px, 1fr)',
+        padding: '14px 24px',
+        borderBottom: `1px solid ${COLORS.cardBorder}`,
+        alignItems: 'center',
+        cursor: 'default',
+        transition: 'all 0.2s ease',
+      }}
+      whileHover={{ 
+        backgroundColor: `${COLORS.card}ef`, 
+        boxShadow: `inset 4px 0 0 ${actionColor}`,
+        paddingLeft: '28px', // slide slightly to the right on hover for human touch!
+      }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: actionColor, boxShadow: `0 0 8px ${actionColor}`, flexShrink: 0 }} />
-          <span
-            style={{ color: COLORS.cyan, fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}
-            onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
-          >
-            {formatAddress(tx.address)}
-          </span>
-        </div>
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 10px', borderRadius: '4px', backgroundColor: actionBg, color: actionColor, border: `1px solid ${actionColor}40`, flexShrink: 0 }}>
-          {tx.action}
+      {/* Wallet Column */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{
+          width: '6px', height: '6px', borderRadius: '50%',
+          backgroundColor: actionColor,
+          boxShadow: `0 0 8px ${actionColor}`,
+          flexShrink: 0
+        }} />
+        <span
+          style={{
+            color: COLORS.cyan,
+            fontSize: '13px',
+            fontFamily: 'monospace',
+            fontWeight: 500,
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            textDecorationStyle: 'dotted',
+            textUnderlineOffset: '3px',
+            transition: 'color 0.2s',
+          }}
+          onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
+          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseLeave={e => e.currentTarget.style.color = COLORS.cyan}
+        >
+          {formatAddress(tx.address)}
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: '16px' }}>
-        <div>
-          <span style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>{tx.amount} ETH</span>
-          <span style={{ color: COLORS.textMuted, fontSize: '12px', marginLeft: '6px' }}>${tx.amountUSD}</span>
-        </div>
-        <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>{formatTime(tx.timestamp)}</span>
+
+      {/* Action Column */}
+      <div>
+        <span style={{
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          padding: '3px 10px',
+          borderRadius: '50px',
+          backgroundColor: actionBg,
+          color: actionColor,
+          border: `1px solid ${actionColor}30`,
+          textTransform: 'uppercase',
+          display: 'inline-block',
+        }}>
+          {isStake ? 'Stake' : 'Unstake'}
+        </span>
+      </div>
+
+      {/* Amount Column */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>
+          {tx.amount} ETH
+        </span>
+        <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+          ${tx.amountUSD}
+        </span>
+      </div>
+
+      {/* Time Column */}
+      <div style={{ textAlign: 'right', color: COLORS.textDim, fontSize: '12px' }}>
+        {humanTime}
       </div>
     </motion.div>
   )
@@ -1510,59 +2004,114 @@ function LoadingPulse() {
 
 // ─── Main Dashboard ───────────────────────────────────────────────
 
-function Dashboard({ activeItem }) {
+function Dashboard({ activeItem, mobile }) {
   // Reset scroll ke top setiap ganti halaman
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [activeItem])
 
+  const PAGE_ACCENTS = {
+    overview:   { c1: '#38bdf8', c2: '#818cf8' },
+    whale:      { c1: '#38bdf8', c2: '#10b981' },
+    staking:    { c1: '#10b981', c2: '#38bdf8' },
+    protocol:   { c1: '#10b981', c2: '#818cf8' },
+    ai:         { c1: '#818cf8', c2: '#38bdf8' },
+    alerts:     { c1: '#f59e0b', c2: '#818cf8' },
+  }
+
+  const accent = PAGE_ACCENTS[activeItem]
+
   const renderContent = () => {
     switch (activeItem) {
-      case 'overview':  return <OverviewContent />
-      case 'whale':     return <WhaleActivityContent />
-      case 'staking':   return <StakingStatsContent />
-      case 'protocol':  return <ProtocolHealthContent />
-      case 'ai':        return <AIInsightsContent />
-      case 'alerts':    return <AlertsContent />
-      case 'settings':  return <SettingsContent />
-      case 'about':     return <AboutContent />
-      default:          return <OverviewContent />
+      case 'overview':   return <OverviewContent />
+      case 'whale':      return <WhaleActivityContent />
+      case 'staking':    return <StakingStatsContent />
+      case 'protocol':   return <ProtocolHealthContent />
+      case 'ai':         return <AIInsightsContent />
+      case 'alerts':     return <AlertsContent />
+      case 'governance': return <GovernanceContent />
+      case 'settings':   return <SettingsContent />
+      case 'about':      return <AboutContent />
+      default:           return <OverviewContent />
     }
   }
 
   const { settings } = useSettings()
 
-  return (
+    return (
     <div style={{
       minHeight: '100vh',
       backgroundColor: COLORS.bg,
       color: COLORS.text,
       fontFamily: "'Segoe UI', system-ui, sans-serif",
-      padding: settings.compactMode ? '20px 24px' : '32px 40px',
     }}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeItem}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.3 }}
-        >
-          {renderContent()}
-        </motion.div>
-      </AnimatePresence>
+      {/* Ambient background — semua halaman kecuali settings & about */}
+      {accent && (
+        <PageBackground accentColor={accent.c1} accentColor2={accent.c2} />
+      )}
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        style={{
-          textAlign: 'center', color: COLORS.textMuted,
-          fontSize: '12px', marginTop: settings.compactMode ? '24px' : '48px',
-        }}
-      >
-        TronicLens · Built for ETHOnline 2026 · Powered by The Graph + Chainlink + 0G
-      </motion.p>
+      {/* Top Bar */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        backgroundColor: '#080f20',
+        borderBottom: '1px solid #0e2040',
+        padding: '0 16px',
+        height: '52px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '8px',
+      }}>
+        {/* Page title — hidden on mobile */}
+        <span style={{
+          color: COLORS.textDim, fontSize: '12px',
+          fontWeight: 600, letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          flexShrink: 0,
+          display: mobile ? 'none' : 'block',
+        }}>
+          {activeItem === 'overview' ? 'Overview' :
+          activeItem === 'whale' ? 'Staking Activity' :
+          activeItem === 'staking' ? 'Staking Stats' :
+          activeItem === 'protocol' ? 'Protocol Health' :
+          activeItem === 'ai' ? 'AI Insights' :
+          activeItem === 'alerts' ? 'Alerts' :
+          activeItem === 'governance' ? 'Governance' :
+          activeItem === 'settings' ? 'Settings' : 'About'}
+        </span>
+
+        {/* Wallet connect */}
+        <div style={{ flexShrink: 0, marginLeft: 'auto' }}>
+          <WalletButton />
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{
+        padding: settings.compactMode ? '20px 24px' : '32px 40px',
+      }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeItem}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          style={{
+            textAlign: 'center', color: COLORS.textMuted,
+            fontSize: '12px', marginTop: settings.compactMode ? '24px' : '48px',
+          }}
+        >
+          TronicLens · Built for ETHOnline 2026 · Powered by The Graph + Chainlink + 0G
+        </motion.p>
+      </div>
     </div>
   )
 }

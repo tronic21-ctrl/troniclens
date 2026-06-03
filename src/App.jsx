@@ -6,6 +6,9 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import { SettingsProvider } from './context/SettingsContext'
 import './index.css'
+import { WagmiProvider } from 'wagmi'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { wagmiAdapter, queryClient } from './config/reown'
 
 // ─── Splash Screen ────────────────────────────────────────────────
 function SplashScreen({ onDone }) {
@@ -242,7 +245,7 @@ function AppInner() {
         }}
       >
         <Routes>
-          <Route path="/" element={<Dashboard activeItem={activeItem} />} />
+          <Route path="/" element={<Dashboard activeItem={activeItem} mobile={mobile} />} />
         </Routes>
       </div>
     </div>
@@ -262,25 +265,29 @@ function App() {
   }
 
   return (
-    <SettingsProvider>
-      <BrowserRouter>
-        <AnimatePresence mode="wait">
-          {showSplash ? (
-            <SplashScreen key="splash" onDone={handleSplashDone} />
-          ) : (
-            <motion.div
-              key="app"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              style={{ minHeight: '100vh' }}
-            >
-              <AppInner />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </BrowserRouter>
-    </SettingsProvider>
+    <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <SettingsProvider>
+          <BrowserRouter>
+            <AnimatePresence mode="wait">
+              {showSplash ? (
+                <SplashScreen key="splash" onDone={handleSplashDone} />
+              ) : (
+                <motion.div
+                  key="app"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                  style={{ minHeight: '100vh' }}
+                >
+                  <AppInner />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </BrowserRouter>
+        </SettingsProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
 

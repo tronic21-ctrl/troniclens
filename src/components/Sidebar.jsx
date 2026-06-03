@@ -49,6 +49,18 @@ const navItems = [
     icon: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>),
     label: 'Alerts', soon: false,
   },
+  {
+    id: 'governance',
+    icon: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <line x1="3" y1="22" x2="21" y2="22"/>
+            <line x1="6" y1="18" x2="6" y2="11"/>
+            <line x1="10" y1="18" x2="10" y2="11"/>
+            <line x1="14" y1="18" x2="14" y2="11"/>
+            <line x1="18" y1="18" x2="18" y2="11"/>
+            <polygon points="12 2 20 7 4 7"/>
+          </svg>),
+    label: 'Governance', soon: false,
+  },
 ]
 
 const bottomItems = [

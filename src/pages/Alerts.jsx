@@ -106,8 +106,18 @@ function AlertCard({ alert, ethPrice, index }) {
       {/* Top accent line */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-        background: accentColor,
+        background: accentColor, opacity: 0.7,
       }} />
+      <motion.div
+        animate={{ x: ['-100%', '200%'] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1, delay: index * 0.4 }}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '35%', height: '1px',
+          background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
+          pointerEvents: 'none',
+        }}
+      />
 
       <div style={{ padding: '16px 20px' }}>
         {/* Header row */}
@@ -321,14 +331,36 @@ export default function AlertsContent() {
         style={{ marginBottom: settings.compactMode ? '16px' : '32px' }}
       >
         <span style={{
-          display: 'inline-block',
-          fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
-          color: COLORS.amber, textTransform: 'uppercase',
-          border: '1px solid #f59e0b40',
-          padding: '3px 10px', borderRadius: '4px',
-          backgroundColor: '#f59e0b15',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '10px',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: COLORS.amber,
+          textTransform: 'uppercase',
+          border: `1px solid ${COLORS.amber}35`,
+          padding: '3px 12px',
+          borderRadius: '50px',
+          background: `linear-gradient(135deg, ${COLORS.amber}1a, ${COLORS.amber}05)`,
+          boxShadow: `0 0 12px ${COLORS.amber}10`,
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
           marginBottom: settings.compactMode ? '6px' : '10px',
         }}>
+          <motion.span
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: COLORS.amber,
+              boxShadow: `0 0 8px ${COLORS.amber}`,
+              display: 'inline-block',
+              flexShrink: 0,
+            }}
+          />
           Live Monitoring
         </span>
         <h1 style={{
@@ -357,25 +389,41 @@ export default function AlertsContent() {
           }}
         >
           {[
-            { label: 'Total Alerts', value: alerts.length, color: COLORS.cyan },
+            { label: 'Total Alerts', value: alerts.length, color: COLORS.amber },
             { label: 'Whale Alerts', value: activities.length, color: COLORS.amber },
-            { label: 'ETH Price', value: chainlinkPrice ? `$${chainlinkPrice.price}` : '—', color: COLORS.green },
-            { label: 'Threshold', value: `≥ ${WHALE_THRESHOLD} ETH`, color: COLORS.purple },
+            { label: 'ETH Price', value: chainlinkPrice ? `$${chainlinkPrice.price}` : '—', color: COLORS.amber },
+            { label: 'Threshold', value: `≥ ${WHALE_THRESHOLD} ETH`, color: COLORS.amber },
           ].map((item, i) => (
-            <div key={i} style={{
-              flex: '1', minWidth: '120px',
-              backgroundColor: COLORS.card,
-              border: `1px solid ${COLORS.cardBorder}`,
-              borderRadius: '10px',
-              padding: '12px 16px',
-            }}>
+            <motion.div
+              key={i}
+              whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              style={{
+                flex: '1', minWidth: '120px',
+                backgroundColor: COLORS.card,
+                border: `1px solid ${COLORS.cardBorder}`,
+                borderRadius: '10px',
+                padding: '12px 16px',
+                position: 'relative', overflow: 'hidden',
+              }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: item.color, opacity: 0.7 }} />
+              <motion.div
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+                style={{
+                  position: 'absolute', top: 0, left: 0,
+                  width: '40%', height: '1px',
+                  background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
+                  pointerEvents: 'none',
+                }}
+              />
               <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
                 {item.label}
               </p>
-              <p style={{ color: item.color, fontSize: '18px', fontWeight: 700 }}>
+              <p style={{ color: COLORS.text, fontSize: '18px', fontWeight: 700 }}>
                 {item.value}
               </p>
-            </div>
+            </motion.div>
           ))}
         </motion.div>
       )}
