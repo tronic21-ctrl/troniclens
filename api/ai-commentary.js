@@ -4,6 +4,10 @@ export default async function handler(req, res) {
 
   const { prompt } = req.body
 
+  if (!process.env.ZG_COMPUTE_API_KEY) {
+    return res.status(500).json({ error: 'Missing API key' })
+  }
+
   try {
     const response = await fetch('https://pc.testnet.0g.ai/v1/chat/completions', {
       method: 'POST',
@@ -19,9 +23,16 @@ export default async function handler(req, res) {
       }),
     })
 
-    const data = await response.json()
-    res.status(200).json(data)
+    const text = await response.text()
+
+    if (!response.ok) {
+      return res.status(500).json({ error: `0G error ${response.status}`, detail: text })
+    }
+
+    const data = JSON.parse(text)
+    return res.status(200).json(data)
+
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    return res.status(500).json({ error: err.message, stack: err.stack })
   }
 }
