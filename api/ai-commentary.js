@@ -5,14 +5,14 @@ export default async function handler(req, res) {
   const { prompt } = req.body
 
   try {
-    const response = await fetch('https://router-api-testnet.integratenetwork.work/v1/chat/completions', {
+    const response = await fetch('https://pc.testnet.0g.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.ZG_COMPUTE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'qwen/qwen-2.5-7b-instruct',
+        model: 'qwen/qwen2.5-omni-7b',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 150,
         temperature: 0.7,
