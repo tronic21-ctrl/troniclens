@@ -70,10 +70,18 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 ### Smart Alerts ⚡ *(New in v1.1)*
 - **ETH Price Alert** — live ETH/USD from Chainlink feed with timestamp
 - **Whale Activity Alerts** — transactions ≥ configurable threshold from The Graph
-- **0G AI Commentary** — per-alert AI insight via 0G Compute (Qwen2.5-7b-instruct)
+- **0G AI Commentary** — per-alert AI insight via 0G Compute (Qwen2.5-omni-7b)
 - Summary bar: Total Alerts, Whale Alerts, ETH Price, Threshold
 - No auto-refresh — stable UI so AI commentary is readable without interruption
 - Powered by Vercel serverless proxy (`api/ai-commentary.js`) for secure 0G Compute calls
+
+### Governance 🗳️ *(New in v1.3)*
+- **On-chain Governance** — create proposals, vote (Yes/No/Abstain), execute via timelock
+- **Eligibility Check** — auto-detect voting power based on stake amount
+- **Real-time Countdown** — live timer untuk voting period dan timelock delay
+- **Wallet Connect** — Reown AppKit integration (MetaMask, Rabby, WalletConnect, etc.)
+- **Proposal History** — full proposal list dengan status badge (Active/Succeeded/Defeated/Executed)
+- Minimum stake: 0.001 ETH · Voting period: 5 min · Timelock: 120s (testnet optimized)
 
 ### What's New (v1.2 — May 2026)
 - Fixed Simulate Whale button (correct stake() selector)
@@ -84,6 +92,16 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - Flat badge design (reduced AI-generated feel)
 - Mobile alert layout improvements
 - 0G Storage upload fixed in ai-insights.mjs
+
+### What's New (v1.3 — June 2026)
+- Governance page — full on-chain proposal lifecycle (create → vote → execute)
+- StakingGovernance contract deployed on Sepolia
+- Reown AppKit wallet connect — custom branded button di topbar
+- Ambient background animations per halaman (PageBackground)
+- Shimmer card animations konsisten di semua halaman
+- Performance optimization — reduced animation load untuk low-spec devices
+- 0G Compute endpoint + API key updated (pc.testnet.0g.ai dashboard)
+- AI commentary fully restored di Smart Alerts
 
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
@@ -105,10 +123,10 @@ Smart Contract: Solidity ^0.8.0 + OpenZeppelin v5.6.1
 Indexing:       The Graph (subgraph: tronic-staking v0.0.2)
 Price Feed:     Chainlink ETH/USD (Sepolia)
 Storage:        0G Storage (Galileo Testnet)
-AI Compute:     0G Compute — Qwen2.5-7b-instruct (TEE verified)
+AI Compute:     0G Compute — Qwen2.5-omni-7b (TEE verified)
 AI Proxy:       Vercel Serverless Function (api/ai-commentary.js)
 RPC:            Alchemy (Sepolia)
-Testing:        Foundry (16/16 tests pass)
+Testing:        Foundry (107/107 tests pass, 98% coverage)
 Deployment:     Vercel
 Network:        Ethereum Sepolia Testnet
 ```
@@ -134,7 +152,8 @@ troniclens/
 │   │   └── useWhaleActivity.js # The Graph + Chainlink data fetching
 │   ├── pages/
 │   │   ├── Dashboard.jsx      # Main router — all page sections
-│   │   └── Alerts.jsx         # Smart Alerts page (v1.1)
+│   │   ├── Alerts.jsx         # Smart Alerts page (v1.1)
+│   │   └── Governance.jsx     # On-chain Governance page (v1.3)
 │   └── utils/
 │       ├── colors.js          # Shared COLORS design tokens
 │       └── mockData.js        # Fallback mock data
@@ -213,7 +232,7 @@ node ai-insights.mjs
 
 This will:
 1. Fetch latest staking data from The Graph
-2. Send to Qwen2.5-7b-instruct via 0G Compute (TEE verified)
+2. Send to Qwen2.5-omni-7b via 0G Compute (TEE verified)
 3. Store AI analysis result on 0G Storage
 4. Dashboard displays Health Score, Sentiment, and full history
 
@@ -224,7 +243,8 @@ This will:
 | Contract | Address | Status |
 |----------|---------|--------|
 | StakingContract | `0x89907e8F6CB6468b2c8fe2d3814249881eF06926` | ✅ Verified |
-| GovernanceContract | Deployed on Sepolia | ✅ Active |
+| GovernanceContract | `0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8` | ✅ Active |
+| StakingGovernance | `0xa830b86ce9D994A3c5b95F124c9a008e74b75080` | ✅ Active |
 
 **StakingContract features:**
 - ETH native staking (no ERC-20)
@@ -253,10 +273,10 @@ This will:
 
 ## ⚠️ Known Limitations
 
-- **StakingContract timestamp bug** — stakeTimestamp dapat tercatat tidak akurat pada beberapa Sepolia nodes. Workaround: set rewardRate ke 0 via owner sebelum unstake, lalu restore ke 1.
-- **AI Insights manual refresh** — data diperbarui manual via `node ai-insights.mjs`, belum auto-scheduled. Planned: cron job di v2.
 - **Single staker testnet data** — semua data dari wallet developer sendiri di Sepolia. Mainnet deployment planned post-hackathon.
-- **0G Compute balance** — 0G Compute Testnet memerlukan OG token di Main Account. Top up via faucet jika balance habis.
+- **AI Insights manual refresh** — data diperbarui manual via `node ai-insights.mjs`, belum auto-scheduled. Planned: cron job di v2.
+- **0G Compute balance** — 0G Compute Testnet memerlukan OG token. Top up via faucet jika balance habis.
+- **Governance testnet only** — voting period 5 menit dan timelock 120s dioptimasi untuk testnet demo. Mainnet config akan berbeda.
 
 ## 📄 License
 
