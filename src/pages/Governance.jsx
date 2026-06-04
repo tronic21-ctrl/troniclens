@@ -494,7 +494,7 @@ function EligibilityCard({ address }) {
           <p style={{ color: COLORS.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>
             {isLoading ? '—' : eligible
               ? `Voting Power: ${formatEth(votingPower)} ETH · ${shortenAddr(address)}`
-              : reason || 'Minimum stake required'}
+              : (reason === 'Tidak ada stake aktif' ? 'No active stake found' : reason) || 'Minimum stake required'}
           </p>
         </div>
       </div>

@@ -1334,10 +1334,11 @@ function ProtocolHealthContent() {
                   color: COLORS.textMuted, 
                   fontSize: '12px', 
                   fontFamily: 'monospace',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  whiteSpace: isMobile ? 'normal' : 'nowrap',
+                  overflow: isMobile ? 'visible' : 'hidden',
+                  textOverflow: isMobile ? 'unset' : 'ellipsis',
                   maxWidth: '100%',
+                  wordBreak: isMobile ? 'break-all' : 'normal',
                 }}>
                   {check.link ? (
                     <span
