@@ -865,7 +865,7 @@ function AboutContent() {
           style={{ textAlign: 'center', padding: '8px' }}
         >
           <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
-            TronicLens v1.0.0 · Built for ETHOnline 2026 · Open Source
+            TronicLens v1.3.0 · Built for ETHOnline 2026 · Open Source
           </p>
         </motion.div>
 
@@ -1221,6 +1221,13 @@ function StakingStatsContent() {
 function ProtocolHealthContent() {
   const { settings } = useSettings()
   const [lastSnapshot, setLastSnapshot] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetch('/og-snapshots.json')
@@ -1287,9 +1294,10 @@ function ProtocolHealthContent() {
               borderRadius: '14px',
               padding: settings.compactMode ? '14px 20px' : '20px 24px',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'flex-start' : 'center',
               justifyContent: 'space-between',
-              gap: '16px',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: '12px',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.25s ease',
