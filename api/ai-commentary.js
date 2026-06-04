@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch('https://pc.testnet.0g.ai/v1/chat/completions', {
+    const response = await fetch('https://router-api-testnet.integratenetwork.work/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
