@@ -20,7 +20,20 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 
 ---
 
+## 📸 Screenshots
+
+### Overview — Real-time Staking Intelligence
+![Overview](public/screenshots/overview.png)
+
+### AI Insights — 0G Compute TEE Verified
+![AI Insights](public/screenshots/ai-insights.png)
+
+### Governance — On-chain Proposal Lifecycle
+![Governance](public/screenshots/governance.png)
+
 ## ✈️ Aviation Analogy — The Cockpit Stack
+
+---
 
 TronicLens is built like a cockpit — every instrument serves a purpose:
 
