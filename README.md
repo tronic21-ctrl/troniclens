@@ -95,13 +95,13 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ### What's New (v1.3 — June 2026)
 - Governance page — full on-chain proposal lifecycle (create → vote → execute)
-- StakingGovernance contract deployed on Sepolia
-- Reown AppKit wallet connect — custom branded button di topbar
-- Ambient background animations per halaman (PageBackground)
-- Shimmer card animations konsisten di semua halaman
-- Performance optimization — reduced animation load untuk low-spec devices
+- StakingGovernance bridge contract deployed and verified on Sepolia
+- Reown AppKit wallet connect — custom branded button in topbar
+- Ambient background animations per page (PageBackground component)
+- Shimmer card animations consistent across all pages
+- Performance optimization — reduced animation load for low-spec devices
 - 0G Compute endpoint + API key updated (pc.testnet.0g.ai dashboard)
-- AI commentary fully restored di Smart Alerts
+- AI commentary fully restored in Smart Alerts
 
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
@@ -242,9 +242,9 @@ This will:
 
 | Contract | Address | Status |
 |----------|---------|--------|
-| StakingContract | `0x89907e8F6CB6468b2c8fe2d3814249881eF06926` | ✅ Verified |
-| GovernanceContract | `0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8` | ✅ Active |
-| StakingGovernance | `0xa830b86ce9D994A3c5b95F124c9a008e74b75080` | ✅ Active |
+| StakingContract | `0x89907e8F6CB6468b2c8fe2d3814249881eF06926` | [✅ Verified](https://eth-sepolia.blockscout.com/address/0x89907e8F6CB6468b2c8fe2d3814249881eF06926) |
+| GovernanceContract | `0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8` | [✅ Verified](https://eth-sepolia.blockscout.com/address/0x20e7F706E4CF70BF957d06aB0e4b56cd0fe5D1b8) |
+| StakingGovernance | `0xa830b86ce9D994A3c5b95F124c9a008e74b75080` | [✅ Verified](https://eth-sepolia.blockscout.com/address/0xa830b86ce9D994A3c5b95F124c9a008e74b75080) |
 
 **StakingContract features:**
 - ETH native staking (no ERC-20)
@@ -252,7 +252,7 @@ This will:
 - ReentrancyGuard protection (OpenZeppelin)
 - NatSpec documentation
 - Minimum stake period enforcement
-- 16/16 Foundry tests passing
+- 107/107 Foundry tests passing (98% line coverage)
 
 ---
 
@@ -273,10 +273,10 @@ This will:
 
 ## ⚠️ Known Limitations
 
-- **Single staker testnet data** — semua data dari wallet developer sendiri di Sepolia. Mainnet deployment planned post-hackathon.
-- **AI Insights manual refresh** — data diperbarui manual via `node ai-insights.mjs`, belum auto-scheduled. Planned: cron job di v2.
-- **0G Compute balance** — 0G Compute Testnet memerlukan OG token. Top up via faucet jika balance habis.
-- **Governance testnet only** — voting period 5 menit dan timelock 120s dioptimasi untuk testnet demo. Mainnet config akan berbeda.
+- **Single staker testnet data** — all data sourced from the developer's own wallet on Sepolia. Mainnet deployment planned post-hackathon.
+- **AI Insights manual refresh** — data is updated manually via `node ai-insights.mjs`, not yet auto-scheduled. Planned: cron job in v2.
+- **0G Compute balance** — 0G Compute Testnet requires OG tokens. Top up via faucet if balance runs out.
+- **Governance testnet only** — voting period (5 min) and timelock (120s) are optimized for testnet demo. Mainnet config will differ.
 
 ## 📄 License
 
