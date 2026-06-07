@@ -1243,7 +1243,7 @@ function OverviewContent() {
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: settings.compactMode ? '16px' : '32px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -1260,34 +1260,22 @@ function OverviewContent() {
               boxShadow: `0 0 12px ${COLORS.cyan}10`,
               backdropFilter: 'blur(4px)',
               WebkitBackdropFilter: 'blur(4px)',
+              whiteSpace: 'nowrap',
             }}>
               <motion.span
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
+                  width: '6px', height: '6px', borderRadius: '50%',
                   backgroundColor: COLORS.cyan,
                   boxShadow: `0 0 8px ${COLORS.cyan}`,
-                  display: 'inline-block',
-                  flexShrink: 0,
+                  display: 'inline-block', flexShrink: 0,
                 }}
               />
-              Live
+              Live · Sepolia
             </span>
-            <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>
+            <span style={{ color: COLORS.textMuted, fontSize: '12px', whiteSpace: 'nowrap' }}>
               {settings.autoRefresh ? `Refreshes every ${settings.refreshInterval}s` : 'Auto-refresh OFF'}
-            </span>
-            <span style={{
-              fontSize: '10px', fontWeight: 600,
-              color: '#e2e8f0',
-              padding: '2px 10px', borderRadius: '50px',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              border: '1px solid #e2e8f025',
-              background: '#e2e8f008',
-            }}>
-              Sepolia
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '4px' }}>
@@ -1427,33 +1415,26 @@ function StakingStatsContent() {
 
       {stats && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          style={{
-            backgroundColor: COLORS.card,
-            border: `1px solid ${COLORS.cardBorder}`,
-            borderRadius: '16px',
-            padding: '24px',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: COLORS.green, opacity: 0.7 }} />
-          <motion.div
-            animate={{ x: ['-100%', '200%'] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute', top: 0, left: 0,
-              width: '40%', height: '1px',
-              background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
-              pointerEvents: 'none',
-            }}
-          />
-          <h3 style={{ color: COLORS.text, fontSize: '15px', fontWeight: 600, marginBottom: '20px' }}>
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        style={{
+          backgroundColor: '#060d1a',
+          border: `1px solid ${COLORS.cardBorder}`,
+          borderRadius: '12px',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          padding: '14px 20px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: '#040a14',
+        }}>
+          <h3 style={{ color: COLORS.text, fontSize: '15px', fontWeight: 600, margin: 0 }}>
             Staker Distribution
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        </div>
+        <div style={{ padding: '20px 24px' }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span style={{ color: COLORS.amber, fontSize: '13px' }}>Whale ({stats.whaleCount})</span>
@@ -2040,23 +2021,19 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '16px', overflow: 'hidden', position: 'relative' }}
+      style={{
+        backgroundColor: '#060d1a',
+        border: `1px solid ${COLORS.cardBorder}`,
+        borderRadius: '12px',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: COLORS.cyan, opacity: 0.7, zIndex: 1 }} />
-      <motion.div
-        animate={{ x: ['-100%', '200%'] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-        style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '40%', height: '1px', zIndex: 2,
-          background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
-          pointerEvents: 'none',
-        }}
-      />
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
-        padding: '20px 24px 16px',
+        padding: '14px 20px',
         borderBottom: `1px solid ${COLORS.cardBorder}`,
+        backgroundColor: '#040a14',
       }}>
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: COLORS.text, marginBottom: '2px' }}>
@@ -2099,8 +2076,9 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(80px, 2fr) minmax(60px, 1fr) minmax(70px, 1.5fr) minmax(50px, 1fr)',
-          padding: '10px 24px',
+          padding: '8px 20px',
           borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: '#040a14',
         }}>
           {['Wallet', 'Action', 'Amount', 'Time'].map(col => (
             <span key={col} style={{
