@@ -50,6 +50,17 @@ const navItems = [
     label: 'Alerts', soon: false,
   },
   {
+    id: 'stake-action',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <ellipse cx="12" cy="8" rx="8" ry="3"/>
+        <path d="M4 8v4c0 1.66 3.58 3 8 3s8-1.34 8-3V8"/>
+        <path d="M4 12v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4"/>
+      </svg>
+    ),
+      label: 'Staking', soon: false,
+  },
+  {
     id: 'governance',
     icon: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <line x1="3" y1="22" x2="21" y2="22"/>

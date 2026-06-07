@@ -331,7 +331,7 @@ function ConnectPrompt() {
           style={{
             position: 'absolute',
             width: '72px', height: '72px', borderRadius: '20px',
-            border: `1px solid ${COLORS.cyan}`,
+            border: `1px solid ${COLORS.purple}`,
           }}
         />
         {/* Pulse ring 2 — offset */}
@@ -350,16 +350,19 @@ function ConnectPrompt() {
           transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
           style={{
             width: '72px', height: '72px', borderRadius: '16px',
-            background: `linear-gradient(135deg, ${COLORS.cyan}20, ${COLORS.purple}20)`,
-            border: `1px solid ${COLORS.cyan}40`,
+            background: `linear-gradient(135deg, ${COLORS.purple}20, ${COLORS.purple}10)`,
+            border: `1px solid ${COLORS.purple}40`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 0 32px ${COLORS.cyan}20`,
+            boxShadow: `0 0 32px ${COLORS.purple}20`,
           }}
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={COLORS.cyan} strokeWidth="1.5">
-            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-            <circle cx="12" cy="12" r="2"/>
-            <path d="M6 12h.01M18 12h.01"/>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={COLORS.purple} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="22" x2="21" y2="22"/>
+            <line x1="6" y1="18" x2="6" y2="11"/>
+            <line x1="10" y1="18" x2="10" y2="11"/>
+            <line x1="14" y1="18" x2="14" y2="11"/>
+            <line x1="18" y1="18" x2="18" y2="11"/>
+            <polygon points="12 2 20 7 4 7"/>
           </svg>
         </motion.div>
       </div>
@@ -386,20 +389,27 @@ function ConnectPrompt() {
         onClick={() => open()}
         style={{
           padding: '13px 32px',
-          background: `linear-gradient(135deg, ${COLORS.cyan}25, ${COLORS.purple}20)`,
-          border: `1px solid ${COLORS.cyan}50`,
+          background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+          border: 'none',
           borderRadius: '10px',
-          color: COLORS.cyan,
+          color: '#ffffff',
           fontSize: '14px', fontWeight: 600,
           cursor: 'pointer',
           letterSpacing: '0.05em',
-          display: 'flex', alignItems: 'center', gap: '8px',
+          boxShadow: '0 0 20px #818cf840',
+          position: 'relative', overflow: 'hidden',
         }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-          <circle cx="12" cy="12" r="2"/>
-        </svg>
+        <motion.div
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute', top: 0, left: 0,
+            width: '40%', height: '100%',
+            background: 'linear-gradient(90deg, transparent, #ffffff15, transparent)',
+            pointerEvents: 'none',
+          }}
+        />
         Connect Wallet
       </motion.button>
     </motion.div>
@@ -408,7 +418,7 @@ function ConnectPrompt() {
 
 // ─── Eligibility Card ─────────────────────────────────────────────
 
-function EligibilityCard({ address }) {
+function EligibilityCard({ address, onGoToStake }) {
   const { data, isLoading } = useReadContract({
     address: STAKING_GOVERNANCE_ADDRESS,
     abi: STAKING_GOVERNANCE_ABI,
@@ -498,15 +508,39 @@ function EligibilityCard({ address }) {
           </p>
         </div>
       </div>
-      <span style={{
-        fontSize: '12px', fontWeight: 600,
-        color: eligible ? COLORS.green : COLORS.amber,
-        border: `1px solid ${eligible ? COLORS.green + '40' : COLORS.amber + '40'}`,
-        backgroundColor: eligible ? `${COLORS.green}15` : `${COLORS.amber}15`,
-        padding: '4px 12px', borderRadius: '4px',
-      }}>
-        {isLoading ? 'Checking...' : eligible ? 'Eligible' : 'Not Eligible'}
-      </span>
+          {isLoading || eligible ? (
+            <span style={{
+              fontSize: '12px', fontWeight: 600,
+              color: isLoading ? COLORS.amber : COLORS.green,
+              border: `1px solid ${isLoading ? COLORS.amber + '40' : COLORS.green + '40'}`,
+              backgroundColor: isLoading ? `${COLORS.amber}15` : `${COLORS.green}15`,
+              padding: '4px 12px', borderRadius: '4px',
+            }}>
+              {isLoading ? 'Checking...' : 'Eligible'}
+            </span>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onGoToStake}
+              style={{
+                padding: '6px 16px',
+                background: `linear-gradient(135deg, ${COLORS.cyan}25, ${COLORS.purple}20)`,
+                border: `1px solid ${COLORS.cyan}50`,
+                borderRadius: '8px',
+                color: COLORS.cyan,
+                fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+              Stake ETH to Participate
+            </motion.button>
+          )}
     </motion.div>
   )
 }
@@ -999,7 +1033,7 @@ function ProposalsList({ address, eligible, refreshTrigger }) {
 
 // ─── Main GovernanceContent ───────────────────────────────────────
 
-export default function GovernanceContent() {
+export default function GovernanceContent({ onItemClick }) {
   const { address, isConnected } = useAccount()
   const { settings } = useSettings()
   const [refreshTrigger, setRefreshTrigger] = useState(0)
@@ -1059,7 +1093,7 @@ export default function GovernanceContent() {
           <ConnectPrompt />
         ) : (
           <>
-            <EligibilityCard address={address} />
+            <EligibilityCard address={address} onGoToStake={() => onItemClick('stake-action')} />
             <CreateProposalForm eligible={eligible} onSuccess={handleProposalCreated} />
 
             <div style={{ marginBottom: '16px' }}>

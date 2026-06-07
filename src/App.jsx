@@ -245,7 +245,7 @@ function AppInner() {
         }}
       >
         <Routes>
-          <Route path="/" element={<Dashboard activeItem={activeItem} mobile={mobile} />} />
+          <Route path="/" element={<Dashboard activeItem={activeItem} mobile={mobile} onItemClick={handleItemClick} />} />
         </Routes>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# TronicLens 🔭
+# TronicLens 
 
 > **On-chain intelligence for stakers who refuse to fly blind**
 
@@ -6,7 +6,7 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 > **Status:** BETA Live — Sepolia PoC — Mainnet coming soon
 
@@ -20,7 +20,7 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### Overview — Real-time Staking Intelligence
 ![Overview](public/screenshots/overview.png)
@@ -31,7 +31,7 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 ### Governance — On-chain Proposal Lifecycle
 ![Governance](public/screenshots/governance.png)
 
-## ✈️ Aviation Analogy — The Cockpit Stack
+## Aviation Analogy — The Cockpit Stack
 
 ---
 
@@ -39,16 +39,16 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 | Instrument | Tech | Purpose |
 |-----------|------|---------|
-| 🛰️ Radar — Live Activity | **The Graph** | Index & query on-chain staking events |
-| 📡 Altimeter — Price Feed | **Chainlink** | Real-time ETH/USD price from Sepolia oracle |
-| 🔔 Alert System | **Chainlink + The Graph** | Smart alerts for whale movements + ETH price |
-| 🗃️ Black Box — Archive | **0G Storage** | Permanent decentralized snapshot of whale activity |
-| 🤖 AI Co-Pilot | **0G Compute** | Qwen2.5 AI analysis — TEE verified |
-| 🖥️ Cockpit — Dashboard | **React + Vite** | Clean, real-time UI for stakers |
+| Radar — Live Activity | **The Graph** | Index & query on-chain staking events |
+| Altimeter — Price Feed | **Chainlink** | Real-time ETH/USD price from Sepolia oracle |
+| Alert System | **Chainlink + The Graph** | Smart alerts for whale movements + ETH price |
+| Black Box — Archive | **0G Storage** | Permanent decentralized snapshot of whale activity |
+| AI Co-Pilot | **0G Compute** | Qwen2.5 AI analysis — TEE verified |
+| Cockpit — Dashboard | **React + Vite** | Clean, real-time UI for stakers |
 
 ---
 
-## 📊 Features
+## Features
 
 ### Overview
 - Real-time stat cards: Total Staked, Active Stakers, Whale Wallets, Avg Stake Size
@@ -80,7 +80,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - AI results stored on-chain via 0G Storage — TEE verified
 - Full analysis history with clickable root hashes → StorageScan
 
-### Smart Alerts ⚡ *(New in v1.1)*
+### Smart Alerts *(New in v1.1)*
 - **ETH Price Alert** — live ETH/USD from Chainlink feed with timestamp
 - **Whale Activity Alerts** — transactions ≥ configurable threshold from The Graph
 - **0G AI Commentary** — per-alert AI insight via 0G Compute (Qwen2.5-omni-7b)
@@ -88,13 +88,22 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - No auto-refresh — stable UI so AI commentary is readable without interruption
 - Powered by Vercel serverless proxy (`api/ai-commentary.js`) for secure 0G Compute calls
 
-### Governance 🗳️ *(New in v1.3)*
+### Governance *(New in v1.3)*
 - **On-chain Governance** — create proposals, vote (Yes/No/Abstain), execute via timelock
 - **Eligibility Check** — auto-detect voting power based on stake amount
 - **Real-time Countdown** — live timer untuk voting period dan timelock delay
 - **Wallet Connect** — Reown AppKit integration (MetaMask, Rabby, WalletConnect, etc.)
 - **Proposal History** — full proposal list dengan status badge (Active/Succeeded/Defeated/Executed)
 - Minimum stake: 0.001 ETH · Voting period: 5 min · Timelock: 120s (testnet optimized)
+
+### Staking *(New in v1.4)*
+- **Stake ETH** — deposit ETH langsung ke StakingContract via UI
+- **Unstake & Claim Rewards** — withdraw principal + accrued rewards sekaligus
+- **Real-time position tracking** — Your Stake, Accrued Reward, Stake Duration, Min. Stake
+- **Contract Reserve Monitor** — live balance contract + estimasi sustainability
+- **Governance eligibility banner** — auto-detect jika user eligible untuk vote
+- **Connect Wallet prompt** — clean onboarding untuk wallet baru
+- Minimum stake: 0.001 ETH · Reward rate: 500 wei/detik · Sepolia Testnet
 
 ### What's New (v1.2 — May 2026)
 - Fixed Simulate Whale button (correct stake() selector)
@@ -116,6 +125,19 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - 0G Compute endpoint + API key updated (pc.testnet.0g.ai dashboard)
 - AI commentary fully restored in Smart Alerts
 
+### What's New (v1.4 — June 2026)
+- **Staking page** — full stake/unstake UI langsung dari dashboard (tidak perlu Remix/Blockscout)
+- **Contract Reserve Monitor** — live contract balance + sustainability estimator ("1000+ years")
+- **Governance eligibility integration** — banner "Stake ETH to Participate" di Governance jika belum stake, dan "Go to Governance →" di Staking jika sudah eligible
+- **Onboarding popup** — 7-step stepper modal untuk user baru (testnet warning, wallet setup, feature tour)
+- **Pill Sepolia redesign** — white transparent pill, tidak lagi amber
+- **Dev Mode removed** — Simulate Whale button dihapus dari Staking Activity (fitur staking sudah live)
+- **Reward display fix** — format desimal 10 angka untuk reward kecil, duration tampil dalam hari/jam
+- **StakingContract funded** — 0.01 ETH reserve + rewardRatePerSecond diset ke 500 wei/detik
+- **Tombol redesign** — solid gradient buttons (Connect Wallet, Stake, Unstake, Governance) konsisten di semua halaman
+- **Card consistency** — shimmer accent line hijau konsisten di semua card halaman Staking
+- **Mobile layout fix** — grid 2 kolom di mobile untuk Staking cards
+
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
 - **Refresh Interval** selector — 15s / 30s / 60s
@@ -127,7 +149,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ```
 Frontend:       React + Vite + Framer Motion
@@ -146,7 +168,7 @@ Network:        Ethereum Sepolia Testnet
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 troniclens/
@@ -157,6 +179,10 @@ troniclens/
 │   ├── logos/                 # Brand logos (ETHGlobal, Chainlink, 0G, The Graph, etc.)
 │   └── og-snapshots.json      # 0G Storage snapshot history
 ├── src/
+│   ├── abi/
+│   │   ├── StakingContract.json     # ABI StakingContract
+│   │   ├── GovernanceContract.json  # ABI GovernanceContract
+│   │   └── StakingGovernance.json   # ABI StakingGovernance bridge
 │   ├── components/
 │   │   └── Sidebar.jsx        # Collapsible navigation with live indicator
 │   ├── context/
@@ -166,7 +192,8 @@ troniclens/
 │   ├── pages/
 │   │   ├── Dashboard.jsx      # Main router — all page sections
 │   │   ├── Alerts.jsx         # Smart Alerts page (v1.1)
-│   │   └── Governance.jsx     # On-chain Governance page (v1.3)
+│   │   ├── Governance.jsx     # On-chain Governance page (v1.3)
+│   │   └── StakeAction.jsx    # Staking page — stake/unstake UI (v1.4)
 │   └── utils/
 │       ├── colors.js          # Shared COLORS design tokens
 │       └── mockData.js        # Fallback mock data
@@ -178,7 +205,7 @@ troniclens/
 
 ---
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 - Node.js v18+
@@ -221,7 +248,7 @@ npm run build
 
 ---
 
-## 📸 0G Storage Snapshots
+## 0G Storage Snapshots
 
 TronicLens archives whale activity snapshots to **0G Storage** for permanent, verifiable records.
 
@@ -251,7 +278,7 @@ This will:
 
 ---
 
-## 🔗 Smart Contracts (Sepolia)
+## Smart Contracts (Sepolia)
 
 | Contract | Address | Status |
 |----------|---------|--------|
@@ -290,6 +317,8 @@ This will:
 - **AI Insights manual refresh** — data is updated manually via `node ai-insights.mjs`, not yet auto-scheduled. Planned: cron job in v2.
 - **0G Compute balance** — 0G Compute Testnet requires OG tokens. Top up via faucet if balance runs out.
 - **Governance testnet only** — voting period (5 min) and timelock (120s) are optimized for testnet demo. Mainnet config will differ.
+- **Flat reward rate** — StakingContract v1 menggunakan flat rate (tidak proporsional terhadap jumlah stake). v2 akan mengimplementasikan proportional reward + proxy pattern untuk upgradability.
+- **Manual rate management** — `rewardRatePerSecond` harus di-adjust manual oleh owner jika TVL berubah signifikan. Auto-adjustment direncanakan di v2.
 
 ## 📄 License
 
