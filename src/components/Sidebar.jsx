@@ -123,8 +123,8 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100dvh',
-        overflowY: 'auto',
+        height: '100dvh',
+        overflow: 'hidden',
       }}>
       {/* Logo area */}
       <div style={{
