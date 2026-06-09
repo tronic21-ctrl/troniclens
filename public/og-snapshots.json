@@ -1,5 +1,13 @@
 [
   {
+    "timestamp": "2026-06-09T05:44:27.051Z",
+    "rootHash": "0x5e0639c115a452654b93e45855c639b67de9c220b2f2da59033e36e6ec518130",
+    "sequence": 124758,
+    "type": "ai-insights",
+    "sentiment": "Bullish",
+    "healthScore": 85
+  },
+  {
     "timestamp": "2026-05-23T04:52:52.979Z",
     "rootHash": "0x3b04511d71523a9a2338311aba62798756adeffca13b3cf7470003aa11c73de4",
     "sequence": 121809,

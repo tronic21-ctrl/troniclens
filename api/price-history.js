@@ -1,0 +1,60 @@
+// api/price-history.js
+// Vercel Serverless — CoinGecko price history proxy with 5-min cache
+
+let cache = { data: null, timestamp: 0 }
+const CACHE_TTL = 5 * 60 * 1000 // 5 menit
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET')
+
+  const now = Date.now()
+
+  // Return dari cache kalau masih fresh
+  if (cache.data && now - cache.timestamp < CACHE_TTL) {
+    return res.status(200).json({ ...cache.data, cached: true })
+  }
+
+  try {
+    const { days = '1', interval } = req.query
+    
+    // Tentukan interval berdasarkan days
+    const intervalParam = days <= 1 ? 'minutely' : days <= 90 ? 'hourly' : 'daily'
+    
+    // Line chart data
+    const priceRes = await fetch(
+      `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}&interval=${intervalParam}`,
+      { headers: { 'Accept': 'application/json' } }
+    )
+
+    if (!priceRes.ok) throw new Error(`CoinGecko error: ${priceRes.status}`)
+
+    const priceData = await priceRes.json()
+
+    // OHLC data untuk candlestick
+    const ohlcRes = await fetch(
+      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${days}`,
+      { headers: { 'Accept': 'application/json' } }
+    )
+
+    const ohlcData = ohlcRes.ok ? await ohlcRes.json() : []
+
+    const result = {
+      prices: priceData.prices,
+      volumes: priceData.total_volumes,
+      ohlc: ohlcData,
+      cached: false,
+      fetchedAt: now,
+    }
+
+    cache = { data: result, timestamp: now }
+    return res.status(200).json(result)
+
+  } catch (err) {
+    // Kalau error tapi ada cache lama, return cache lama daripada error
+    if (cache.data) {
+      return res.status(200).json({ ...cache.data, cached: true, stale: true })
+    }
+    return res.status(500).json({ error: err.message })
+  }
+}

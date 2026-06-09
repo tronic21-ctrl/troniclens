@@ -126,3 +126,21 @@ code {
               0 8px 10px -6px rgb(56 189 248 / 0.1);
   border-color: rgba(56, 189, 248, 0.3);
 }
+
+/* Sidebar scrollbar custom */
+aside ::-webkit-scrollbar {
+  width: 3px;
+}
+
+aside ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+aside ::-webkit-scrollbar-thumb {
+  background: #38bdf820;
+  border-radius: 99px;
+}
+
+aside ::-webkit-scrollbar-thumb:hover {
+  background: #38bdf845;
+}

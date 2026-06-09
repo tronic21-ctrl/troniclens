@@ -19,10 +19,12 @@
     "ethers": "^6.13.1",
     "framer-motion": "^12.38.0",
     "graphql": "^16.14.0",
+    "lightweight-charts": "^5.2.0",
     "openai": "^6.38.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.15.0",
+    "recharts": "^3.8.1",
     "viem": "^2.51.3",
     "wagmi": "^3.6.16"
   },

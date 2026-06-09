@@ -12,6 +12,7 @@ import { useAppKit } from '@reown/appkit/react'
 import AlertsContent from './Alerts'
 import GovernanceContent from './Governance'
 import StakeActionContent from './StakeAction'
+import ETHPriceChart from '../components/ETHPriceChart'
 
 // ─── Shared Components ───────────────────────────────────────────
 
@@ -1234,6 +1235,7 @@ function OverviewContent() {
     whaleThreshold: settings.whaleThreshold,
   })
 
+  if (loading && !activities.length) return <OverviewSkeleton />
   return (
     <div style={{ padding: settings.compactMode ? '0' : undefined }}>
       <AnimatePresence>
@@ -1335,8 +1337,7 @@ function OverviewContent() {
           <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per staker" accent={COLORS.cyan} delay={0.25} icon="" />
         </div>
       )}
-
-      <WhaleTable activities={activities} loading={loading} error={error} formatTime={formatTime} formatAddress={formatAddress} WHALE_THRESHOLD={settings.whaleThreshold} />
+      <ETHPriceChart chainlinkPrice={chainlinkPrice} tronicTVL={stats?.totalStaked} />
     </div>
   )
 }
@@ -1393,6 +1394,7 @@ function StakingStatsContent() {
     whaleThreshold: settings.whaleThreshold,
   })
 
+  if (!stats) return <StakingStatsSkeleton />
   return (
     <div>
       <PageHeader
@@ -1403,14 +1405,93 @@ function StakingStatsContent() {
       />
 
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: settings.compactMode ? '8px' : '16px', marginBottom: settings.compactMode ? '16px' : '32px' }}>
-          <StatCard label="Total Value Locked" value={`${stats.totalStaked} ETH`} sub={`$${stats.totalStakedUSD}`} accent={COLORS.green} delay={0.05} />
-          <StatCard label="Active Stakers" value={stats.activeStakers} sub="unique addresses" accent={COLORS.green} delay={0.1} />
-          <StatCard label="Whale Wallets" value={stats.whaleCount} sub={`≥ ${settings.whaleThreshold} ETH`} accent={COLORS.green} delay={0.15} icon="" />
-          <StatCard label="Avg Stake Size" value={`${stats.avgStakeSize} ETH`} sub="per wallet" accent={COLORS.green} delay={0.2} icon="" />
-          <StatCard label="ETH Price" value={`$${stats.ethPrice}`} sub="via Chainlink feed" accent={COLORS.green} delay={0.25} />
-          <StatCard label="Retail Stakers" value={stats.activeStakers - stats.whaleCount} sub={`< ${settings.whaleThreshold} ETH threshold`} accent={COLORS.green} delay={0.3} />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          style={{
+            backgroundColor: '#060d1a',
+            border: `1px solid ${COLORS.cardBorder}`,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            marginBottom: settings.compactMode ? '16px' : '24px',
+          }}
+        >
+          {/* Panel header */}
+          <div style={{
+            padding: '10px 16px',
+            borderBottom: `1px solid ${COLORS.cardBorder}`,
+            backgroundColor: '#040a14',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ color: COLORS.textDim, fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Protocol Metrics
+            </span>
+            <motion.span
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COLORS.green, boxShadow: `0 0 6px ${COLORS.green}`, display: 'inline-block' }}
+            />
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)',
+            gridTemplateRows: isMobile ? 'auto' : 'auto auto',
+          }}>
+            {[
+              { label: 'Total Value Locked', value: `${stats.totalStaked} ETH`, sub: `$${stats.totalStakedUSD}`, color: COLORS.green },
+              { label: 'Active Stakers',     value: stats.activeStakers,         sub: 'unique addresses',                color: COLORS.text },
+              { label: 'Whale Wallets',      value: stats.whaleCount,            sub: `≥ ${settings.whaleThreshold} ETH`, color: COLORS.amber },
+              { label: 'Avg Stake Size',     value: `${stats.avgStakeSize} ETH`, sub: 'per wallet',                     color: COLORS.text },
+              { label: 'ETH Price',          value: `$${stats.ethPrice}`,        sub: 'via Chainlink',                  color: COLORS.cyan },
+              { label: 'Retail Stakers',     value: stats.activeStakers - stats.whaleCount, sub: `< ${settings.whaleThreshold} ETH`, color: COLORS.text },
+            ].map((item, i) => {
+              const isLastRow = i >= 3
+              const isLastCol = isMobile ? (i % 2 === 1) : (i % 3 === 2)
+              return (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.05 * i + 0.2 }}
+                    style={{
+                      padding: settings.compactMode ? '12px 14px' : '14px 18px',
+                      borderBottom: !isLastRow ? `1px solid ${COLORS.cardBorder}` : 'none',
+                      borderRight: !isLastCol ? `1px solid ${COLORS.cardBorder}` : 'none',
+                    }}
+                  >
+                    <p style={{
+                      color: COLORS.textDim,
+                      fontSize: '9px',
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      marginBottom: '5px',
+                      lineHeight: 1.3,
+                      whiteSpace: isMobile ? 'normal' : 'nowrap',
+                    }}>
+                      {item.label}
+                    </p>
+                    <p style={{
+                      color: item.color,
+                      fontSize: settings.compactMode ? '14px' : isMobile ? '15px' : '18px',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                      fontFamily: 'monospace',
+                      marginBottom: '2px',
+                      lineHeight: 1.2,
+                    }}>
+                      {item.value}
+                    </p>
+                    <p style={{ color: COLORS.textMuted, fontSize: '10px', lineHeight: 1.3 }}>
+                      {item.sub}
+                    </p>
+                </motion.div>
+              )
+            })}
+          </div>
+        </motion.div>
       )}
 
       {stats && (
@@ -1531,7 +1612,7 @@ function ProtocolHealthContent() {
       logo: '/logos/eth-diamond-(color-filled).svg' 
     },
     { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, logo: '/logos/OZ-Logo-FavIconColor.svg' },
-    { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.2 · 100%', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
+    { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.3 · 100%', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
     { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
     {
       label: '0G Storage', status: 'Connected',
@@ -2270,6 +2351,61 @@ function ActivityRow({ tx, formatTime, formatAddress, index, isMobile }) {
         {humanTime}
       </div>
     </motion.div>
+  )
+}
+
+// ─── Skeleton: Overview ───────────────────────────────────────────
+function OverviewSkeleton() {
+  const pulse = { animate: { opacity: [0.3, 0.6, 0.3] }, transition: { duration: 1.5, repeat: Infinity } }
+  return (
+    <div style={{ padding: '24px 32px' }}>
+      {/* Header skeleton */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <motion.div {...pulse} style={{ width: '180px', height: '36px', backgroundColor: COLORS.cardBorder, borderRadius: '8px' }} />
+          <motion.div {...pulse} transition={{ ...pulse.transition, delay: 0.1 }} style={{ width: '280px', height: '16px', backgroundColor: COLORS.cardBorder, borderRadius: '6px' }} />
+        </div>
+        <motion.div {...pulse} style={{ width: '200px', height: '80px', backgroundColor: COLORS.cardBorder, borderRadius: '12px' }} />
+      </div>
+      {/* 4 stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        {[0, 0.1, 0.2, 0.3].map((delay, i) => (
+          <motion.div key={i} {...pulse} transition={{ duration: 1.5, repeat: Infinity, delay }}
+            style={{ height: '100px', backgroundColor: COLORS.cardBorder, borderRadius: '16px' }} />
+        ))}
+      </div>
+      {/* Chart skeleton */}
+      <motion.div {...pulse} transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+        style={{ height: '320px', backgroundColor: COLORS.cardBorder, borderRadius: '12px', marginBottom: '24px' }} />
+      {/* Table skeleton */}
+      <motion.div {...pulse} transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+        style={{ height: '200px', backgroundColor: COLORS.cardBorder, borderRadius: '16px' }} />
+    </div>
+  )
+}
+
+// ─── Skeleton: Staking Stats ──────────────────────────────────────
+function StakingStatsSkeleton() {
+  const pulse = { animate: { opacity: [0.3, 0.6, 0.3] }, transition: { duration: 1.5, repeat: Infinity } }
+  return (
+    <div style={{ padding: '24px 32px' }}>
+      {/* Header */}
+      <div style={{ marginBottom: '28px' }}>
+        <motion.div {...pulse} style={{ width: '60px', height: '22px', backgroundColor: COLORS.cardBorder, borderRadius: '50px', marginBottom: '12px' }} />
+        <motion.div {...pulse} transition={{ ...pulse.transition, delay: 0.1 }} style={{ width: '200px', height: '32px', backgroundColor: COLORS.cardBorder, borderRadius: '8px', marginBottom: '6px' }} />
+        <motion.div {...pulse} transition={{ ...pulse.transition, delay: 0.15 }} style={{ width: '320px', height: '14px', backgroundColor: COLORS.cardBorder, borderRadius: '6px' }} />
+      </div>
+      {/* 6 stat cards 3x2 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+        {[0, 0.1, 0.2, 0.15, 0.25, 0.3].map((delay, i) => (
+          <motion.div key={i} {...pulse} transition={{ duration: 1.5, repeat: Infinity, delay }}
+            style={{ height: '100px', backgroundColor: COLORS.cardBorder, borderRadius: '16px' }} />
+        ))}
+      </div>
+      {/* Distribution card */}
+      <motion.div {...pulse} transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+        style={{ height: '160px', backgroundColor: COLORS.cardBorder, borderRadius: '16px' }} />
+    </div>
   )
 }
 

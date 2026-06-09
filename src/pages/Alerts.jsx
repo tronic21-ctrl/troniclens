@@ -96,29 +96,14 @@ function AlertCard({ alert, ethPrice, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07 }}
       style={{
-        backgroundColor: COLORS.card,
-        border: `1px solid ${accentColor}30`,
-        borderRadius: '14px',
+        backgroundColor: '#060d1a',
+        border: `1px solid ${COLORS.cardBorder}`,
+        borderLeft: `3px solid ${accentColor}`,
+        borderRadius: '10px',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
-      {/* Top accent line */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-        background: accentColor, opacity: 0.7,
-      }} />
-      <motion.div
-        animate={{ x: ['-100%', '200%'] }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1, delay: index * 0.4 }}
-        style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '35%', height: '1px',
-          background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
-          pointerEvents: 'none',
-        }}
-      />
-
       <div style={{ padding: '16px 20px' }}>
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
@@ -128,25 +113,36 @@ function AlertCard({ alert, ethPrice, index }) {
               backgroundColor: accentBg,
               border: `1px solid ${accentColor}40`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '18px', flexShrink: 0,
+              flexShrink: 0,
             }}>
               {isPrice ? (
                 <img src="/logos/eth-diamond-(color-filled).svg" alt="ETH" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
               ) : (
-                <span>{icon}</span>
+                <svg width="24" height="20" viewBox="0 0 205 95" fill="none">
+                  <path d="M 30 45 Q 80 20 150 35 Q 185 42 200 52 Q 185 62 150 68 Q 80 80 30 55 Z" fill={accentColor}/>
+                  <path d="M 30 50 L 0 30 L 14 50 Z" fill={isStake ? '#0d9668' : '#e11d48'}/>
+                  <path d="M 30 50 L 0 70 L 14 50 Z" fill={isStake ? '#0d9668' : '#e11d48'}/>
+                  <path d="M 95 28 L 108 4 L 125 30 Z" fill={isStake ? '#0d9668' : '#e11d48'}/>
+                  <path d="M 130 62 L 138 82 L 158 66 Z" fill={isStake ? '#0d9668' : '#e11d48'}/>
+                  <circle cx="175" cy="49" r="5" fill={isStake ? '#34d399' : '#fb7185'}/>
+                  <circle cx="176" cy="48" r="2" fill={isStake ? '#059669' : '#be123c'}/>
+                </svg>
               )}
             </span>
             <div>
               <p style={{ 
                 color: COLORS.text, fontSize: '14px', fontWeight: 700, marginBottom: '2px',
-                wordBreak: 'break-word',
               }}>
                 {isPrice
-                  ? <><span style={{ color: COLORS.textMuted, fontWeight: 600 }}>ETH / USD</span>{' '}
-                      <span style={{ color: COLORS.cyan }}>${alert.amountUSD}</span></>
+                  ? <span style={{ color: COLORS.textMuted, fontWeight: 600 }}>ETH / USD</span>
                   : `${alert.action} · ${alert.amountEth.toFixed(4)} ETH`
                 }
               </p>
+              {isPrice && (
+                <p style={{ color: COLORS.cyan, fontSize: '15px', fontWeight: 700, marginBottom: '2px' }}>
+                  ${alert.amountUSD}
+                </p>
+              )}
               <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
                 {isPrice ? 'Chainlink · ETH/USD'
                   : (
@@ -164,12 +160,15 @@ function AlertCard({ alert, ethPrice, index }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
             <span style={{
-              fontSize: '11px', fontWeight: 700,
+              fontSize: '10px', fontWeight: 700,
               color: accentColor,
-              backgroundColor: accentBg,
-              border: `1px solid ${accentColor}40`,
-              padding: '3px 10px', borderRadius: '4px',
-              letterSpacing: '0.06em',
+              background: `linear-gradient(135deg, ${accentColor}1a, ${accentColor}05)`,
+              border: `1px solid ${accentColor}35`,
+              padding: '3px 12px', borderRadius: '50px',
+              letterSpacing: '0.08em',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+              boxShadow: `0 0 10px ${accentColor}10`,
             }}>
               {isPrice ? 'PRICE' : alert.action}
             </span>
@@ -195,25 +194,34 @@ function AlertCard({ alert, ethPrice, index }) {
         )}
 
         {/* Ask AI button */}
-        <button
-          onClick={handleAskAI}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            backgroundColor: expanded ? COLORS.purpleDim : 'transparent',
-            border: `1px solid ${COLORS.purple}40`,
-            borderRadius: '8px',
-            padding: '7px 14px',
-            color: COLORS.purple,
-            fontSize: '12px', fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'background-color 0.2s',
-            width: '100%',
-            justifyContent: 'center',
-          }}
-        >
-          <span>✦</span>
-          <span>{expanded ? 'Hide AI Insight' : 'Ask 0G AI'}</span>
-        </button>
+          <button
+            onClick={handleAskAI}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              backgroundColor: expanded ? `${COLORS.purple}25` : `${COLORS.purple}12`,
+              border: `1px solid ${COLORS.purple}50`,
+              borderRadius: '6px',
+              padding: '7px 14px',
+              color: COLORS.purple,
+              fontSize: '11px', fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s, border-color 0.2s',
+              width: '100%',
+              justifyContent: 'center',
+            }}
+          >
+            <img
+              src="/logos/0G-Logo-White.svg"
+              alt="0G"
+              style={{
+                width: '13px', height: '13px', objectFit: 'contain',
+                filter: 'brightness(0) saturate(100%) invert(58%) sepia(60%) saturate(400%) hue-rotate(200deg) brightness(110%)',
+              }}
+            />
+            <span>{expanded ? 'Hide AI Insight' : 'Ask 0G AI'}</span>
+          </button>
 
         {/* AI Commentary */}
         <AnimatePresence>
@@ -384,47 +392,54 @@ export default function AlertsContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           style={{
-            display: 'flex', gap: '12px', flexWrap: 'wrap',
-            marginBottom: '24px',
+            backgroundColor: '#060d1a',
+            border: `1px solid ${COLORS.cardBorder}`,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            marginBottom: '20px',
           }}
         >
-          {[
-            { label: 'Total Alerts', value: alerts.length, color: COLORS.amber },
-            { label: 'Whale Alerts', value: activities.length, color: COLORS.amber },
-            { label: 'ETH Price', value: chainlinkPrice ? `$${chainlinkPrice.price}` : '—', color: COLORS.amber },
-            { label: 'Threshold', value: `≥ ${WHALE_THRESHOLD} ETH`, color: COLORS.amber },
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ y: -2, transition: { duration: 0.2 } }}
-              style={{
-                flex: '1', minWidth: '120px',
-                backgroundColor: COLORS.card,
-                border: `1px solid ${COLORS.cardBorder}`,
-                borderRadius: '10px',
-                padding: '12px 16px',
-                position: 'relative', overflow: 'hidden',
-              }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: item.color, opacity: 0.7 }} />
-              <motion.div
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-                style={{
-                  position: 'absolute', top: 0, left: 0,
-                  width: '40%', height: '1px',
-                  background: 'linear-gradient(90deg, transparent, #ffffff90, transparent)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
-                {item.label}
-              </p>
-              <p style={{ color: COLORS.text, fontSize: '18px', fontWeight: 700 }}>
-                {item.value}
-              </p>
-            </motion.div>
-          ))}
+          <div style={{
+            padding: '10px 16px',
+            borderBottom: `1px solid ${COLORS.cardBorder}`,
+            backgroundColor: '#040a14',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ color: COLORS.textDim, fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Alert Summary
+            </span>
+            <motion.span
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COLORS.amber, boxShadow: `0 0 6px ${COLORS.amber}`, display: 'inline-block' }}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)' }}>
+            {[
+              { label: 'Total Alerts',  value: alerts.length,                                    color: COLORS.amber },
+              { label: 'Whale Alerts',  value: activities.length,                                color: COLORS.amber },
+              { label: 'ETH Price',     value: chainlinkPrice ? `$${chainlinkPrice.price}` : '—', color: COLORS.cyan },
+              { label: 'Threshold',     value: `≥ ${WHALE_THRESHOLD} ETH`,                       color: COLORS.text },
+            ].map((item, i) => {
+              const totalCols = isMobile ? 2 : 4
+              const isLastCol = (i % totalCols) === totalCols - 1
+              const isLastRow = isMobile ? i >= 2 : true
+              return (
+                <div key={i} style={{
+                  padding: '12px 16px',
+                  borderRight: !isLastCol ? `1px solid ${COLORS.cardBorder}` : 'none',
+                  borderBottom: !isLastRow ? `1px solid ${COLORS.cardBorder}` : 'none',
+                }}>
+                  <p style={{ color: COLORS.textDim, fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '5px' }}>
+                    {item.label}
+                  </p>
+                  <p style={{ color: item.color, fontSize: isMobile ? '14px' : '16px', fontWeight: 700, fontFamily: 'monospace', letterSpacing: '-0.02em' }}>
+                    {item.value}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
         </motion.div>
       )}
 

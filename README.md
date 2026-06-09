@@ -14,7 +14,7 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 |----------|------|
 | **Live App** | [troniclens.vercel.app](https://troniclens.vercel.app) |
 | GitHub | [tronic21-ctrl/troniclens](https://github.com/tronic21-ctrl/troniclens) |
-| Subgraph | [tronic-staking v0.0.2](https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2) |
+| Subgraph | [tronic-staking v0.0.3](https://api.studio.thegraph.com/query/1749265/tronic-staking/version/latest) |
 | StorageScan | [0G Galileo Testnet](https://storagescan-galileo.0g.ai) |
 | StakingContract | [0x89907e8F...06926](https://eth-sepolia.blockscout.com/address/0x89907e8F6CB6468b2c8fe2d3814249881eF06926) |
 
@@ -31,9 +31,9 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 ### Governance — On-chain Proposal Lifecycle
 ![Governance](public/screenshots/governance.png)
 
-## Aviation Analogy — The Cockpit Stack
-
 ---
+
+## Aviation Analogy — The Cockpit Stack
 
 TronicLens is built like a cockpit — every instrument serves a purpose:
 
@@ -53,6 +53,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 ### Overview
 - Real-time stat cards: Total Staked, Active Stakers, Whale Wallets, Avg Stake Size
 - Chainlink ETH/USD price feed (live from Sepolia)
+- ETH price chart with line, candlestick, and TVL overlay (CoinGecko + DeFiLlama)
 - Whale Activity Feed powered by The Graph
 
 ### Staking Activity
@@ -60,19 +61,20 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - **All Transactions** — complete staking history, wallet addresses clickable → Blockscout
 
 ### Staking Stats
+- Protocol Metrics panel — terminal-style data grid (TVL, Active Stakers, Whale Wallets, Avg Stake, ETH Price, Retail Stakers)
 - Total Value Locked (TVL) with USD conversion via Chainlink
-- Staker distribution: Whale vs Retail breakdown with progress bars
+- Staker distribution: Whale vs Retail breakdown with animated progress bars
 - ETH price via Chainlink feed
-- Retail Stakers count (below threshold)
 
 ### Protocol Health
 - Real-time status of all integrations:
   - StakingContract (Sepolia, verified)
+  - GovernanceContract (Sepolia, timelock 120s)
+  - StakingGovernance bridge (Sepolia, verified)
   - ReentrancyGuard (OpenZeppelin v5.6.1)
-  - The Graph Subgraph (tronic-staking v0.0.2, 100% synced)
+  - The Graph Subgraph (tronic-staking v0.0.3, 100% synced)
   - Chainlink Feed (ETH/USD, 8 decimals, Live)
   - 0G Storage (last snapshot with clickable root hash → StorageScan)
-  - GovernanceContract (Sepolia, timelock 120s)
 
 ### AI Insights
 - Protocol Health Score (0–100) via Qwen2.5 on 0G Compute
@@ -80,63 +82,31 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - AI results stored on-chain via 0G Storage — TEE verified
 - Full analysis history with clickable root hashes → StorageScan
 
-### Smart Alerts *(New in v1.1)*
+### Smart Alerts
 - **ETH Price Alert** — live ETH/USD from Chainlink feed with timestamp
 - **Whale Activity Alerts** — transactions ≥ configurable threshold from The Graph
 - **0G AI Commentary** — per-alert AI insight via 0G Compute (Qwen2.5-omni-7b)
-- Summary bar: Total Alerts, Whale Alerts, ETH Price, Threshold
+- Alert Summary panel: Total Alerts, Whale Alerts, ETH Price, Threshold
+- Left-border accent per alert card — color-coded by type (price/stake/unstake)
 - No auto-refresh — stable UI so AI commentary is readable without interruption
 - Powered by Vercel serverless proxy (`api/ai-commentary.js`) for secure 0G Compute calls
 
 ### Governance *(New in v1.3)*
 - **On-chain Governance** — create proposals, vote (Yes/No/Abstain), execute via timelock
 - **Eligibility Check** — auto-detect voting power based on stake amount
-- **Real-time Countdown** — live timer untuk voting period dan timelock delay
+- **Real-time Countdown** — live timer for voting period and timelock delay
 - **Wallet Connect** — Reown AppKit integration (MetaMask, Rabby, WalletConnect, etc.)
-- **Proposal History** — full proposal list dengan status badge (Active/Succeeded/Defeated/Executed)
+- **Proposal History** — full proposal list with status badge (Active/Succeeded/Defeated/Executed)
 - Minimum stake: 0.001 ETH · Voting period: 5 min · Timelock: 120s (testnet optimized)
 
 ### Staking *(New in v1.4)*
-- **Stake ETH** — deposit ETH langsung ke StakingContract via UI
-- **Unstake & Claim Rewards** — withdraw principal + accrued rewards sekaligus
+- **Stake ETH** — deposit ETH directly into StakingContract via UI
+- **Unstake & Claim Rewards** — withdraw principal + accrued rewards in one transaction
 - **Real-time position tracking** — Your Stake, Accrued Reward, Stake Duration, Min. Stake
-- **Contract Reserve Monitor** — live balance contract + estimasi sustainability
-- **Governance eligibility banner** — auto-detect jika user eligible untuk vote
-- **Connect Wallet prompt** — clean onboarding untuk wallet baru
-- Minimum stake: 0.001 ETH · Reward rate: 500 wei/detik · Sepolia Testnet
-
-### What's New (v1.2 — May 2026)
-- Fixed Simulate Whale button (correct stake() selector)
-- Total Staked now shows current TVL (not historical)
-- Health Score & Market Sentiment color indicators
-- Clickable contract address → Blockscout
-- Animated live pulse dots across all pages
-- Flat badge design (reduced AI-generated feel)
-- Mobile alert layout improvements
-- 0G Storage upload fixed in ai-insights.mjs
-
-### What's New (v1.3 — June 2026)
-- Governance page — full on-chain proposal lifecycle (create → vote → execute)
-- StakingGovernance bridge contract deployed and verified on Sepolia
-- Reown AppKit wallet connect — custom branded button in topbar
-- Ambient background animations per page (PageBackground component)
-- Shimmer card animations consistent across all pages
-- Performance optimization — reduced animation load for low-spec devices
-- 0G Compute endpoint + API key updated (pc.testnet.0g.ai dashboard)
-- AI commentary fully restored in Smart Alerts
-
-### What's New (v1.4 — June 2026)
-- **Staking page** — full stake/unstake UI langsung dari dashboard (tidak perlu Remix/Blockscout)
-- **Contract Reserve Monitor** — live contract balance + sustainability estimator ("1000+ years")
-- **Governance eligibility integration** — banner "Stake ETH to Participate" di Governance jika belum stake, dan "Go to Governance →" di Staking jika sudah eligible
-- **Onboarding popup** — 7-step stepper modal untuk user baru (testnet warning, wallet setup, feature tour)
-- **Pill Sepolia redesign** — white transparent pill, tidak lagi amber
-- **Dev Mode removed** — Simulate Whale button dihapus dari Staking Activity (fitur staking sudah live)
-- **Reward display fix** — format desimal 10 angka untuk reward kecil, duration tampil dalam hari/jam
-- **StakingContract funded** — 0.01 ETH reserve + rewardRatePerSecond diset ke 500 wei/detik
-- **Tombol redesign** — solid gradient buttons (Connect Wallet, Stake, Unstake, Governance) konsisten di semua halaman
-- **Card consistency** — shimmer accent line hijau konsisten di semua card halaman Staking
-- **Mobile layout fix** — grid 2 kolom di mobile untuk Staking cards
+- **Contract Reserve Monitor** — live contract balance + sustainability estimator
+- **Governance eligibility banner** — auto-detect if user is eligible to vote
+- **Connect Wallet prompt** — clean onboarding for new wallets
+- Minimum stake: 0.001 ETH · Reward rate: 500 wei/second · Sepolia Testnet
 
 ### Settings
 - **Auto Refresh** toggle — live data from The Graph
@@ -149,14 +119,56 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ---
 
+## What's New
+
+### v1.4 — June 2026
+- **Staking page** — full stake/unstake UI directly from dashboard (no need for Remix/Blockscout)
+- **ETH Price Chart** — line chart, candlestick, and TVL overlay via CoinGecko + DeFiLlama
+- **Protocol Metrics redesign** — terminal-style data grid replacing individual stat cards
+- **Smart Alerts redesign** — Alert Summary panel, left-border accent cards, shark icon for whale alerts
+- **Sidebar scroll fix** — all nav items accessible on small screens
+- **LIVE · SEPOLIA badge** — merged into single pill
+- **Subgraph v0.0.3** — redeployed and re-synced on The Graph Studio
+- **AI Insights refresh** — updated to Qwen2.5-omni-7b, new snapshot (txSeq: 124758)
+- **Custom scrollbar** — subtle cyan scrollbar on sidebar
+- **Contract Reserve Monitor** — live contract balance + sustainability estimator
+- **Governance eligibility integration** — cross-page eligibility banners
+- **Onboarding popup** — 7-step stepper modal for new users
+
+### v1.3 — June 2026
+- Governance page — full on-chain proposal lifecycle (create → vote → execute)
+- StakingGovernance bridge contract deployed and verified on Sepolia
+- Reown AppKit wallet connect — custom branded button in topbar
+- Ambient background animations per page (PageBackground component)
+- Shimmer card animations consistent across all pages
+- 0G Compute endpoint + API key updated
+- AI commentary fully restored in Smart Alerts
+
+### v1.2 — May 2026
+- Fixed Simulate Whale button (correct stake() selector)
+- Total Staked now shows current TVL (not historical)
+- Health Score & Market Sentiment color indicators
+- Clickable contract address → Blockscout
+- Animated live pulse dots across all pages
+- Flat badge design (reduced AI-generated feel)
+- Mobile alert layout improvements
+- 0G Storage upload fixed in ai-insights.mjs
+
+### v1.1 — May 2026
+- Smart Alerts page — ETH price + whale alerts with 0G AI commentary
+- Vercel serverless proxy for 0G Compute CORS bypass
+
+---
+
 ## Tech Stack
 
 ```
 Frontend:       React + Vite + Framer Motion
 State:          React Context (SettingsContext)
 Smart Contract: Solidity ^0.8.0 + OpenZeppelin v5.6.1
-Indexing:       The Graph (subgraph: tronic-staking v0.0.2)
+Indexing:       The Graph (subgraph: tronic-staking v0.0.3)
 Price Feed:     Chainlink ETH/USD (Sepolia)
+Price Chart:    CoinGecko API + DeFiLlama API (via Vercel serverless proxy)
 Storage:        0G Storage (Galileo Testnet)
 AI Compute:     0G Compute — Qwen2.5-omni-7b (TEE verified)
 AI Proxy:       Vercel Serverless Function (api/ai-commentary.js)
@@ -173,33 +185,36 @@ Network:        Ethereum Sepolia Testnet
 ```
 troniclens/
 ├── api/
-│   └── ai-commentary.js       # Vercel serverless proxy — 0G Compute CORS bypass
+│   ├── ai-commentary.js       # Vercel serverless proxy — 0G Compute CORS bypass
+│   ├── price-history.js       # Vercel serverless proxy — CoinGecko price + OHLC
+│   └── tvl-history.js         # Vercel serverless proxy — DeFiLlama TVL history
 ├── public/
-│   ├── favicon.svg            # TronicLens custom favicon
+│   ├── favicon.svg
 │   ├── logos/                 # Brand logos (ETHGlobal, Chainlink, 0G, The Graph, etc.)
 │   └── og-snapshots.json      # 0G Storage snapshot history
 ├── src/
 │   ├── abi/
-│   │   ├── StakingContract.json     # ABI StakingContract
-│   │   ├── GovernanceContract.json  # ABI GovernanceContract
-│   │   └── StakingGovernance.json   # ABI StakingGovernance bridge
+│   │   ├── StakingContract.json
+│   │   ├── GovernanceContract.json
+│   │   └── StakingGovernance.json
 │   ├── components/
-│   │   └── Sidebar.jsx        # Collapsible navigation with live indicator
+│   │   ├── Sidebar.jsx        # Collapsible navigation with live indicator
+│   │   └── ETHPriceChart.jsx  # ETH price chart — line/candlestick/TVL overlay
 │   ├── context/
-│   │   └── SettingsContext.jsx # Global settings state (React Context)
+│   │   └── SettingsContext.jsx
 │   ├── hooks/
-│   │   └── useWhaleActivity.js # The Graph + Chainlink data fetching
+│   │   └── useWhaleActivity.js
 │   ├── pages/
-│   │   ├── Dashboard.jsx      # Main router — all page sections
-│   │   ├── Alerts.jsx         # Smart Alerts page (v1.1)
-│   │   ├── Governance.jsx     # On-chain Governance page (v1.3)
-│   │   └── StakeAction.jsx    # Staking page — stake/unstake UI (v1.4)
+│   │   ├── Dashboard.jsx
+│   │   ├── Alerts.jsx
+│   │   ├── Governance.jsx
+│   │   └── StakeAction.jsx
 │   └── utils/
 │       ├── colors.js          # Shared COLORS design tokens
-│       └── mockData.js        # Fallback mock data
-├── upload-snapshot.mjs        # 0G Storage snapshot upload script
-├── ai-insights.mjs            # 0G Compute AI analysis script
-├── .env                       # API keys (not committed)
+│       └── mockData.js
+├── upload-snapshot.mjs
+├── ai-insights.mjs
+├── .env
 └── vite.config.js
 ```
 
@@ -258,12 +273,6 @@ TronicLens archives whale activity snapshots to **0G Storage** for permanent, ve
 node upload-snapshot.mjs
 ```
 
-This will:
-1. Fetch latest staking data from The Graph
-2. Upload JSON snapshot to 0G Storage (Galileo Testnet)
-3. Save root hash + sequence to `public/og-snapshots.json`
-4. Dashboard auto-displays the latest snapshot with a clickable link to StorageScan
-
 ### Generate AI Insights
 
 ```bash
@@ -303,7 +312,7 @@ This will:
 | Sponsor | Prize | Integration |
 |---------|-------|-------------|
 | **0G Network** | $15,000 | 0G Storage snapshots + 0G Compute AI Insights (TEE verified) + Smart Alerts AI proxy |
-| **The Graph** | $15,000 | Native subgraph (tronic-staking v0.0.2, 100% synced) — used across all pages |
+| **The Graph** | $15,000 | Native subgraph (tronic-staking v0.0.3, 100% synced) — used across all pages |
 | **Chainlink** | TBD | Live ETH/USD price feed on Sepolia — Overview, Staking Stats, Smart Alerts |
 
 **Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))  
@@ -317,8 +326,10 @@ This will:
 - **AI Insights manual refresh** — data is updated manually via `node ai-insights.mjs`, not yet auto-scheduled. Planned: cron job in v2.
 - **0G Compute balance** — 0G Compute Testnet requires OG tokens. Top up via faucet if balance runs out.
 - **Governance testnet only** — voting period (5 min) and timelock (120s) are optimized for testnet demo. Mainnet config will differ.
-- **Flat reward rate** — StakingContract v1 menggunakan flat rate (tidak proporsional terhadap jumlah stake). v2 akan mengimplementasikan proportional reward + proxy pattern untuk upgradability.
-- **Manual rate management** — `rewardRatePerSecond` harus di-adjust manual oleh owner jika TVL berubah signifikan. Auto-adjustment direncanakan di v2.
+- **Flat reward rate** — StakingContract v1 uses a flat rate (not proportional to stake amount). v2 will implement proportional rewards + proxy pattern for upgradability.
+- **Manual rate management** — `rewardRatePerSecond` must be adjusted manually by the owner if TVL changes significantly. Auto-adjustment is planned for v2.
+
+---
 
 ## 📄 License
 

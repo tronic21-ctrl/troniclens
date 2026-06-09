@@ -16,9 +16,9 @@ config({ path: join(__dirname, '.env') })
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const ZG_COMPUTE_ENDPOINT = 'https://router-api-testnet.integratenetwork.work/v1'
 const ZG_COMPUTE_API_KEY  = process.env.ZG_COMPUTE_API_KEY
-const MODEL               = 'qwen/qwen-2.5-7b-instruct'
+const MODEL               = 'qwen/qwen2.5-omni-7b'
 
-const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2'
+const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/version/latest'
 const RPC_URL        = 'https://evmrpc-testnet.0g.ai'
 const INDEXER_RPC    = 'https://indexer-storage-testnet-turbo.0g.ai'
 const PRIVATE_KEY    = process.env.PRIVATE_KEY

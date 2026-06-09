@@ -1,7 +1,7 @@
 // useWhaleActivity.js
 import { useState, useEffect, useRef } from 'react'
 
-const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/v0.0.2'
+const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/version/latest'
 
 const WHALE_QUERY = `
   {
