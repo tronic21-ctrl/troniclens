@@ -47,18 +47,39 @@ function fmtTime(ts, days) {
   if (n <= 1) return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   if (n <= 7) return d.toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit' })
   if (n <= 30) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+  return d.toLocaleDateString('en-US', { month: 'short' })
 }
 
 // ── Custom Tooltip ────────────────────────────────────────────────
-function ChartTooltip({ active, payload, label, tab }) {
+function ChartTooltip({ active, payload, label, tab, range }) {
   if (!active || !payload?.length) return null
+
+  let formattedLabel = label
+  if (typeof label === 'number') {
+    const d = new Date(label)
+    const days = TIME_RANGES.find(x => x.label === range)?.days || '1'
+    const n = parseFloat(days)
+
+    if (n <= 0.04) {
+      formattedLabel = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    } else if (n <= 1) {
+      formattedLabel = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    } else if (n <= 7) {
+      formattedLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    } else if (n <= 30) {
+      formattedLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    } else {
+      formattedLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+  }
+
   return (
     <div style={{
       background: '#0d1829', border: '1px solid #1a2f4e',
       borderRadius: '8px', padding: '10px 14px',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.4)',
     }}>
-      <p style={{ color: C.dim, fontSize: '11px', marginBottom: '4px' }}>{label}</p>
+      <p style={{ color: C.dim, fontSize: '11px', marginBottom: '4px' }}>{formattedLabel}</p>
       {tab === 'Volume' ? (
         <p style={{ color: C.purple, fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>
           {fmt$(payload[0]?.value)}
@@ -100,39 +121,62 @@ function CandlestickChart({ ohlcData, isPositive, fullscreen = false }) {
     const timer = setTimeout(() => {
       if (!containerRef.current) return
 
-    const chart = createChart(containerRef.current, {
-      width: containerRef.current.clientWidth,
-      height: fullscreen ? (containerRef.current?.parentElement?.clientHeight || window.innerHeight - 120) : 220,
-      layout: { background: { color: 'transparent' }, textColor: C.dim },
-      grid: { vertLines: { color: '#0e2040' }, horzLines: { color: '#0e2040' } },
-      crosshair: { mode: 1 },
-      rightPriceScale: { borderColor: '#0e2040' },
-      timeScale: { borderColor: '#0e2040', timeVisible: true },
-    })
+      const parentH = containerRef.current?.parentElement?.clientHeight
+      let calculatedHeight = 220
+      if (fullscreen) {
+        if (parentH && parentH > 0) {
+          calculatedHeight = parentH
+        } else {
+          const isMobilePortrait = window.innerWidth < 768 && window.innerHeight > window.innerWidth
+          calculatedHeight = isMobilePortrait ? (window.innerWidth - 100) : (window.innerHeight - 120)
+        }
+      }
 
-    const series = chart.addSeries(CandlestickSeries, {
-      upColor: C.green, downColor: C.red,
-      borderUpColor: C.green, borderDownColor: C.red,
-      wickUpColor: C.green, wickDownColor: C.red,
-    })
+      const chart = createChart(containerRef.current, {
+        width: containerRef.current.clientWidth,
+        height: calculatedHeight,
+        layout: { background: { color: 'transparent' }, textColor: C.dim },
+        grid: { vertLines: { color: '#0e2040' }, horzLines: { color: '#0e2040' } },
+        crosshair: { mode: 1 },
+        rightPriceScale: { borderColor: '#0e2040' },
+        timeScale: { borderColor: '#0e2040', timeVisible: true },
+      })
 
-    // Format OHLC data for lightweight-charts
-    const formatted = ohlcData
-      .map(([ts, o, h, l, c]) => ({
-        time: Math.floor(ts / 1000),
-        open: o, high: h, low: l, close: c,
-      }))
-      .sort((a, b) => a.time - b.time)
+      const series = chart.addSeries(CandlestickSeries, {
+        upColor: C.green, downColor: C.red,
+        borderUpColor: C.green, borderDownColor: C.red,
+        wickUpColor: C.green, wickDownColor: C.red,
+      })
 
-    series.setData(formatted)
-    chart.timeScale().fitContent()
+      // Format OHLC data for lightweight-charts
+      const formatted = ohlcData
+        .map(([ts, o, h, l, c]) => ({
+          time: Math.floor(ts / 1000),
+          open: o, high: h, low: l, close: c,
+        }))
+        .sort((a, b) => a.time - b.time)
 
-    chartRef.current = chart
-    seriesRef.current = series
+      series.setData(formatted)
+      chart.timeScale().fitContent()
+
+      chartRef.current = chart
+      seriesRef.current = series
 
       const handleResize = () => {
         if (containerRef.current && chartRef.current) {
-          try { chartRef.current.applyOptions({ width: containerRef.current.clientWidth }) } catch(e) {}
+          try {
+            const parentH = containerRef.current?.parentElement?.clientHeight
+            let h = 220
+            if (fullscreen) {
+              if (parentH && parentH > 0) {
+                h = parentH
+              } else {
+                const isMobilePortrait = window.innerWidth < 768 && window.innerHeight > window.innerWidth
+                h = isMobilePortrait ? (window.innerWidth - 100) : (window.innerHeight - 120)
+              }
+            }
+            chartRef.current.resize(containerRef.current.clientWidth, h)
+          } catch(e) {}
         }
       }
       window.addEventListener('resize', handleResize)
@@ -153,7 +197,7 @@ function CandlestickChart({ ohlcData, isPositive, fullscreen = false }) {
     }
   }, [ohlcData])
 
-  return <div ref={containerRef} style={{ width: '100%', height: '220px' }} />
+  return <div ref={containerRef} style={{ width: '100%', height: fullscreen ? '100%' : '220px' }} />
 }
 
 // ── Main Component ────────────────────────────────────────────────
@@ -320,6 +364,17 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
   useEffect(() => { fetchPriceData(range) }, [range, fetchPriceData])
   useEffect(() => { if (tab === 'TVL') fetchTVL() }, [tab, fetchTVL])
 
+  // Scroll block for fullscreen mode
+  useEffect(() => {
+    if (isFullscreen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isFullscreen])
+
   const currentPrice = priceData[priceData.length - 1]?.price
     || (chainlinkPrice?.price ? parseFloat(String(chainlinkPrice.price).replace(/,/g, '')) : null)
   const isPositive = priceChange.positive
@@ -335,6 +390,21 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         borderRadius: '12px', overflow: 'hidden', marginBottom: '24px',
       }}
     >
+      <style>{`
+        @media (max-width: 768px) and (orientation: portrait) {
+          .fullscreen-chart-overlay {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: 100vh !important;
+            height: 100vw !important;
+            transform: translate(-50%, -50%) rotate(90deg) !important;
+            transform-origin: center !important;
+          }
+        }
+      `}</style>
       {/* ── HEADER ── */}
       <div style={{
         padding: '16px 20px 12px',
@@ -519,9 +589,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
+              <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
               <YAxis domain={['auto', 'auto']} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => '$' + v.toLocaleString()} width={72} />
-              <Tooltip content={<ChartTooltip tab="Price" />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
+              <Tooltip content={<ChartTooltip tab="Price" range={range} />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
               <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#priceGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }} />
             </AreaChart>
           </ResponsiveContainer>
@@ -529,9 +599,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={volumeData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
+              <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
               <YAxis tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={72} />
-              <Tooltip content={<ChartTooltip tab="Volume" />} cursor={{ fill: `${C.purple}10` }} />
+              <Tooltip content={<ChartTooltip tab="Volume" range={range} />} cursor={{ fill: `${C.purple}10` }} />
               <Bar dataKey="volume" fill={C.purple} fillOpacity={0.8} radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -555,9 +625,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false} />
-                <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
+                <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
                 <YAxis tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => v + 'B'} width={56} />
-                <Tooltip content={<ChartTooltip tab="TVL" />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Tooltip content={<ChartTooltip tab="TVL" range={range} />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
                 <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#globalTVLGrad)" dot={false} />
                 <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#tronicTVLGrad)" dot={false} />
               </AreaChart>
@@ -727,9 +797,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
-                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis domain={['auto','auto']} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => '$'+v.toLocaleString()} width={76}/>
-                    <Tooltip content={<ChartTooltip tab="Price"/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
+                    <Tooltip content={<ChartTooltip tab="Price" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
                     <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }}/>
                   </AreaChart>
                 </ResponsiveContainer>
@@ -737,9 +807,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={volumeData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
-                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={76}/>
-                    <Tooltip content={<ChartTooltip tab="Volume"/>} cursor={{ fill: `${C.purple}10` }}/>
+                    <Tooltip content={<ChartTooltip tab="Volume" range={range}/>} cursor={{ fill: `${C.purple}10` }}/>
                     <Bar dataKey="volume" fill={C.purple} fillOpacity={0.8} radius={[2,2,0,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
@@ -755,9 +825,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
-                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v+'B'} width={56}/>
-                    <Tooltip content={<ChartTooltip tab="TVL"/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
+                    <Tooltip content={<ChartTooltip tab="TVL" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
                     <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false}/>
                     <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false}/>
                   </AreaChart>
