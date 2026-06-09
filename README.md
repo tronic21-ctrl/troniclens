@@ -119,6 +119,17 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ---
 
+### v1.5 — June 2026
+- **ETH/USD Price Chart fullscreen mode** — expand chart to fullscreen, mobile-friendly with landscape support
+- **Candlestick toggle di fullscreen** — line/candle switch tersedia di fullscreen mode
+- **Rate limit handling** — countdown timer + auto-retry saat CoinGecko rate limit tercapai (`globalRetryTimer` tidak reset saat ganti timeframe)
+- **Skeleton loading** — Overview dan Staking Stats punya skeleton animation saat loading pertama
+- **COINGECKO badge** — pill badge konsisten menjelaskan sumber data chart
+- **Dev Mode removed** — Simulate Whale button dihapus dari Staking Activity
+- **WhaleTable redesign** — darker background feel tabel transaksi, tidak ada shimmer accent line
+- **Staker Distribution** — header section dengan darker background konsisten
+- **Version bump** — v1.5.0
+
 ## What's New
 
 ### v1.4 — June 2026

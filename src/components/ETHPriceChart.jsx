@@ -2,7 +2,7 @@
 // TronicLens — ETH/USD Price Chart with Candlestick, Volume, TVL
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid
@@ -81,7 +81,7 @@ function ChartTooltip({ active, payload, label, tab }) {
 }
 
 // ── Candlestick Chart (lightweight-charts) ────────────────────────
-function CandlestickChart({ ohlcData, isPositive }) {
+function CandlestickChart({ ohlcData, isPositive, fullscreen = false }) {
   const containerRef = useRef(null)
   const chartRef = useRef(null)
   const seriesRef = useRef(null)
@@ -102,7 +102,7 @@ function CandlestickChart({ ohlcData, isPositive }) {
 
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
-      height: 220,
+      height: fullscreen ? (containerRef.current?.parentElement?.clientHeight || window.innerHeight - 120) : 220,
       layout: { background: { color: 'transparent' }, textColor: C.dim },
       grid: { vertLines: { color: '#0e2040' }, horzLines: { color: '#0e2040' } },
       crosshair: { mode: 1 },
@@ -168,6 +168,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [retryIn, setRetryIn] = useState(0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [priceChange, setPriceChange] = useState({ value: 0, pct: 0, positive: true })
 
   // Fetch price + volume + ohlc
@@ -344,17 +345,17 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <div style={{
-                width: '24px', height: '24px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, #627eea, #8a9ef5)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '12px', fontWeight: 700, color: '#fff',
-              }}>Ξ</div>
+              <img
+                  src="/logos/eth-diamond-(color-filled).svg"
+                  alt="ETH"
+                  style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                />
               <span style={{ color: C.text, fontSize: '14px', fontWeight: 700 }}>ETH / USD</span>
               <span style={{
                 fontSize: '10px', fontWeight: 600, color: C.cyan,
-                border: `1px solid ${C.cyan}30`, background: `${C.cyan}10`,
-                padding: '1px 7px', borderRadius: '4px',
+                border: `1px solid ${C.cyan}35`, background: `linear-gradient(135deg, ${C.cyan}1a, ${C.cyan}05)`,
+                padding: '2px 10px', borderRadius: '50px',
+                letterSpacing: '0.05em',
               }}>COINGECKO</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
@@ -370,8 +371,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           </div>
 
           {/* Chart type toggle (line/candle) — only for Price tab */}
-          {tab === 'Price' && (
-            <div style={{ display: 'flex', gap: '4px', alignSelf: 'center' }}>
+          <div style={{ display: 'flex', gap: '6px', alignSelf: 'center' }}>
+            {tab === 'Price' && (
+              <>
               {[
                 { type: 'line', icon: (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -399,9 +401,28 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                   {icon}
                 </button>
               ))}
-            </div>
-          )}
+            </>
+            )}
+            {/* Fullscreen button */}
+            <button
+              onClick={() => setIsFullscreen(true)}
+              style={{
+                width: '32px', height: '32px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '6px',
+                border: `1px solid ${C.border}`,
+                background: 'none', color: C.dim, cursor: 'pointer',
+              }}
+              title="Fullscreen"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+            </button>
+          </div>
         </div>
+        {/* Row 2: Tabs + Time ranges */}
 
         {/* Row 2: Tabs + Time ranges */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
@@ -568,6 +589,193 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           <span style={{ color: C.dim, fontSize: '10px' }}>Updated {chainlinkPrice.updatedAt}</span>
         )}
       </div>
+
+      {/* Fullscreen overlay */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              backgroundColor: C.bg,
+              display: 'flex', flexDirection: 'column',
+            }}
+          >
+            {/* Fullscreen header */}
+            <div style={{
+              padding: '12px 16px',
+              borderBottom: `1px solid ${C.border}`,
+              backgroundColor: '#040a14',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #627eea, #8a9ef5)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '12px', fontWeight: 700, color: '#fff',
+                }}>Ξ</div>
+                <span style={{ color: C.text, fontSize: '15px', fontWeight: 700 }}>ETH / USD</span>
+                <span style={{
+                  fontSize: '10px', fontWeight: 600, color: C.cyan,
+                  border: `1px solid ${C.cyan}35`, background: `linear-gradient(135deg, ${C.cyan}1a, ${C.cyan}05)`,
+                  padding: '2px 10px', borderRadius: '50px', letterSpacing: '0.05em',
+                }}>COINGECKO</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ color: C.text, fontSize: '20px', fontWeight: 800, fontFamily: 'monospace' }}>
+                  {currentPrice ? fmt$(currentPrice) : '—'}
+                </span>
+                {tab === 'Price' && (
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[
+                      { type: 'line', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg> },
+                      { type: 'candle', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="7" width="4" height="10" rx="1"/><line x1="6" y1="4" x2="6" y2="7"/><line x1="6" y1="17" x2="6" y2="20"/><rect x="16" y="5" width="4" height="8" rx="1"/><line x1="18" y1="2" x2="18" y2="5"/><line x1="18" y1="13" x2="18" y2="20"/></svg> },
+                    ].map(({ type, icon }) => (
+                      <button key={type} onClick={() => setChartType(type)} style={{
+                        width: '32px', height: '32px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        borderRadius: '6px',
+                        border: chartType === type ? `1px solid ${C.cyan}50` : `1px solid ${C.border}`,
+                        background: chartType === type ? `${C.cyan}15` : 'none',
+                        color: chartType === type ? C.cyan : C.dim,
+                        cursor: 'pointer',
+                      }}>
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={() => setIsFullscreen(false)}
+                  style={{
+                    width: '32px', height: '32px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '6px', border: `1px solid ${C.border}`,
+                    background: 'none', color: C.dim, cursor: 'pointer',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/><line x1="3" y1="21" x2="14" y2="10"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Fullscreen tabs + ranges */}
+            <div style={{
+              padding: '10px 16px',
+              borderBottom: `1px solid ${C.border}`,
+              backgroundColor: '#040a14',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
+            }}>
+              <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
+                {TABS.map(t => (
+                  <button key={t} onClick={() => setTab(t)} style={{
+                    padding: '4px 14px', borderRadius: '6px', border: 'none',
+                    background: tab === t ? '#0e2040' : 'none',
+                    color: tab === t ? C.text : C.dim,
+                    fontSize: '13px', fontWeight: tab === t ? 600 : 400, cursor: 'pointer',
+                  }}>{t}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {TIME_RANGES.map(({ label }) => {
+                  const disabledForTVL = tab === 'TVL' && label === '1H'
+                  return (
+                    <button key={label} onClick={() => !disabledForTVL && setRange(label)} style={{
+                      padding: '5px 12px', borderRadius: '6px',
+                      border: range === label && !disabledForTVL ? `1px solid ${C.cyan}50` : '1px solid transparent',
+                      background: range === label && !disabledForTVL ? `${C.cyan}15` : 'none',
+                      color: disabledForTVL ? '#1e3a5f' : range === label ? C.cyan : C.dim,
+                      fontSize: '13px', fontWeight: 600, cursor: disabledForTVL ? 'not-allowed' : 'pointer',
+                      opacity: disabledForTVL ? 0.4 : 1,
+                    }}>{label}</button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Fullscreen chart */}
+             <div style={{ flex: 1, padding: '8px 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              {loading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
+                    style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
+                </div>
+              ) : error ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
+                  <span style={{ color: C.dim, fontSize: '13px' }}>CoinGecko rate limit reached</span>
+                  {retryIn > 0 && (
+                    <span style={{ color: C.amber, fontSize: '12px', fontFamily: 'monospace' }}>Retrying in {retryIn}s...</span>
+                  )}
+                </div>
+              ) : tab === 'Price' && chartType === 'candle' ? (
+                <div style={{ padding: '0 8px', flex: 1, minHeight: 0 }}>
+                  <CandlestickChart ohlcData={ohlcData} isPositive={isPositive} fullscreen={true} />
+                </div>
+              ) : tab === 'Price' ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={priceData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="fsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={lineColor} stopOpacity={0.25}/>
+                        <stop offset="100%" stopColor={lineColor} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
+                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <YAxis domain={['auto','auto']} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => '$'+v.toLocaleString()} width={76}/>
+                    <Tooltip content={<ChartTooltip tab="Price"/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
+                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : tab === 'Volume' ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={volumeData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
+                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={76}/>
+                    <Tooltip content={<ChartTooltip tab="Volume"/>} cursor={{ fill: `${C.purple}10` }}/>
+                    <Bar dataKey="volume" fill={C.purple} fillOpacity={0.8} radius={[2,2,0,0]}/>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={tvlData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="fsTVL1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.cyan} stopOpacity={0.2}/><stop offset="100%" stopColor={C.cyan} stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="fsTVL2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.green} stopOpacity={0.3}/><stop offset="100%" stopColor={C.green} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
+                    <XAxis dataKey="time" tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
+                    <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v+'B'} width={56}/>
+                    <Tooltip content={<ChartTooltip tab="TVL"/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
+                    <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false}/>
+                    <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {/* Fullscreen footer */}
+            <div style={{ padding: '8px 16px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: C.dim, fontSize: '10px' }}>
+                {tab === 'TVL' ? 'ETH Ecosystem TVL via DeFiLlama · TronicLens TVL via The Graph' : 'Historical data via CoinGecko · Live price via Chainlink'}
+              </span>
+              <span style={{ color: C.dim, fontSize: '10px' }}>Rotate device for best experience</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </motion.div>
   )
 }

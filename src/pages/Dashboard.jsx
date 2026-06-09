@@ -867,7 +867,7 @@ function AboutContent() {
           style={{ textAlign: 'center', padding: '8px' }}
         >
           <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
-            TronicLens v1.4.0 · Built for ETHOnline 2026 · Open Source
+            TronicLens v1.5.0 · Built for ETHOnline 2026 · Open Source
           </p>
         </motion.div>
 
