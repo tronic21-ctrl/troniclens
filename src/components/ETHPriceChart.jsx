@@ -398,8 +398,8 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             left: 50% !important;
             right: auto !important;
             bottom: auto !important;
-            width: 100vh !important;
-            height: 100vw !important;
+            width: 100dvh !important;
+            height: 100dvw !important;
             transform: translate(-50%, -50%) rotate(90deg) !important;
             transform-origin: center !important;
           }
@@ -682,12 +682,11 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '24px', height: '24px', borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #627eea, #8a9ef5)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '12px', fontWeight: 700, color: '#fff',
-                }}>Ξ</div>
+                <img
+                  src="/logos/eth-diamond-(color-filled).svg"
+                  alt="ETH"
+                  style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                />
                 <span style={{ color: C.text, fontSize: '15px', fontWeight: 700 }}>ETH / USD</span>
                 <span style={{
                   fontSize: '10px', fontWeight: 600, color: C.cyan,
