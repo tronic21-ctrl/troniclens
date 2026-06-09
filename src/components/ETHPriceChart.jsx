@@ -273,47 +273,70 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         setVolumeData(volumes)
         setOhlcData(filteredOhlc)
         setPriceChange(pc)
-      } else {
-        // Production: use Vercel proxy
-        const res = await fetch(`/api/price-history?days=${days}`)
-        const data = await res.json()
+        } else {
+          // Production: use Vercel proxy
+          // JIKA range 1H (0.04), paksa minta data 1 hari ke proxy agar API CoinGecko tidak error/empty
+          const apiDays = days === '0.04' ? '1' : days
+          const res = await fetch(`/api/price-history?days=${apiDays}`)
+          const data = await res.json()
 
-        const prices = data.prices.map(([ts, p]) => ({
-          time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts,
-        }))
-        const volumes = (data.volumes || []).map(([ts, v]) => ({
-          time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts,
-        }))
+          const rawPrices = data.prices || []
+          const rawVolumes = data.volumes || []
+          const rawOhlc = data.ohlc || []
 
-        setPriceData(prices)
-        setVolumeData(volumes)
-        setOhlcData(data.ohlc || [])
+          const cutoff = Date.now() - 60 * 60 * 1000
 
-        const first = prices[0]?.price
-        const last = prices[prices.length - 1]?.price
-        const change = last - first
-        setPriceChange({
-          value: Math.abs(change).toFixed(2),
-          pct: Math.abs((change / first) * 100).toFixed(2),
-          positive: change >= 0,
-        })
+          // Saring data untuk 1 jam terakhir jika range yang dipilih 1H
+          const filteredPrices = days === '0.04' 
+            ? rawPrices.filter(([ts]) => ts >= cutoff) 
+            : rawPrices
+
+          const filteredVolumes = days === '0.04' 
+            ? rawVolumes.filter(([ts]) => ts >= cutoff) 
+            : rawVolumes
+
+          const filteredOhlc = days === '0.04'
+            ? rawOhlc.filter(([ts]) => ts >= cutoff)
+            : rawOhlc
+
+          const prices = filteredPrices.map(([ts, p]) => ({
+            time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts,
+          }))
+          const volumes = filteredVolumes.map(([ts, v]) => ({
+            time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts,
+          }))
+
+          setPriceData(prices)
+          setVolumeData(volumes)
+          setOhlcData(filteredOhlc)
+
+          if (prices.length > 0) {
+            const first = prices[0]?.price
+            const last = prices[prices.length - 1]?.price
+            const change = last - first
+            setPriceChange({
+              value: Math.abs(change).toFixed(2),
+              pct: Math.abs((change / first) * 100).toFixed(2),
+              positive: change >= 0,
+            })
+          }
+        }
+      } catch (err) {
+        setError(err.message)
+        const retryAfter = err.retryAfter || 60
+        // Hanya set timer baru kalau belum ada timer yang jalan
+        if (globalRetryTimer.retryAt <= Date.now()) {
+          globalRetryTimer.retryAt = Date.now() + retryAfter * 1000
+          setRetryIn(retryAfter)
+        } else {
+          // Sisa waktu dari timer yang sudah jalan
+          const remaining = Math.ceil((globalRetryTimer.retryAt - Date.now()) / 1000)
+          setRetryIn(remaining)
+        }
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      setError(err.message)
-      const retryAfter = err.retryAfter || 60
-      // Hanya set timer baru kalau belum ada timer yang jalan
-      if (globalRetryTimer.retryAt <= Date.now()) {
-        globalRetryTimer.retryAt = Date.now() + retryAfter * 1000
-        setRetryIn(retryAfter)
-      } else {
-        // Sisa waktu dari timer yang sudah jalan
-        const remaining = Math.ceil((globalRetryTimer.retryAt - Date.now()) / 1000)
-        setRetryIn(remaining)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    }, [])
 
   // Fetch TVL
   const fetchTVL = useCallback(async () => {
