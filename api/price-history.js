@@ -1,7 +1,7 @@
 // api/price-history.js
 // Vercel Serverless — CoinGecko price history proxy with 5-min cache
 
-let cache = { data: null, timestamp: 0 }
+let cache = {} // Key: days, Value: { data, timestamp }
 const CACHE_TTL = 5 * 60 * 1000 // 5 menit
 
 export default async function handler(req, res) {
@@ -9,15 +9,15 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET')
 
   const now = Date.now()
+  const { days = '1', interval } = req.query
+  const cacheKey = String(days)
 
   // Return dari cache kalau masih fresh
-  if (cache.data && now - cache.timestamp < CACHE_TTL) {
-    return res.status(200).json({ ...cache.data, cached: true })
+  if (cache[cacheKey] && now - cache[cacheKey].timestamp < CACHE_TTL) {
+    return res.status(200).json({ ...cache[cacheKey].data, cached: true })
   }
 
   try {
-    const { days = '1', interval } = req.query
-    
     // Tentukan interval berdasarkan days
     const intervalParam = days <= 1 ? 'minutely' : days <= 90 ? 'hourly' : 'daily'
     
@@ -47,13 +47,13 @@ export default async function handler(req, res) {
       fetchedAt: now,
     }
 
-    cache = { data: result, timestamp: now }
+    cache[cacheKey] = { data: result, timestamp: now }
     return res.status(200).json(result)
 
   } catch (err) {
     // Kalau error tapi ada cache lama, return cache lama daripada error
-    if (cache.data) {
-      return res.status(200).json({ ...cache.data, cached: true, stale: true })
+    if (cache[cacheKey]) {
+      return res.status(200).json({ ...cache[cacheKey].data, cached: true, stale: true })
     }
     return res.status(500).json({ error: err.message })
   }
