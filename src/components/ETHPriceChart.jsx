@@ -499,7 +499,12 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           {/* Tabs */}
           <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
             {TABS.map(t => (
-              <button key={t} onClick={() => setTab(t)} style={{
+              <button key={t} onClick={() => {
+                setTab(t)
+                if (t === 'TVL' && (range === '1H' || range === '1D')) {
+                  setRange('1W')
+                }
+              }} style={{
                 padding: '4px 12px', borderRadius: '6px',
                 border: 'none',
                 background: tab === t ? '#0e2040' : 'none',
@@ -513,7 +518,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           {/* Time ranges */}
           <div style={{ display: 'flex', gap: '2px' }}>
             {TIME_RANGES.map(({ label }) => {
-              const disabledForTVL = tab === 'TVL' && label === '1H'
+              const disabledForTVL = tab === 'TVL' && (label === '1H' || label === '1D')
               return (
                 <button key={label}
                   onClick={() => !disabledForTVL && setRange(label)}
@@ -744,7 +749,12 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             }}>
               <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
                 {TABS.map(t => (
-                  <button key={t} onClick={() => setTab(t)} style={{
+                  <button key={t} onClick={() => {
+                    setTab(t)
+                    if (t === 'TVL' && (range === '1H' || range === '1D')) {
+                      setRange('1W')
+                    }
+                  }} style={{
                     padding: '4px 14px', borderRadius: '6px', border: 'none',
                     background: tab === t ? '#0e2040' : 'none',
                     color: tab === t ? C.text : C.dim,
@@ -754,7 +764,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 {TIME_RANGES.map(({ label }) => {
-                  const disabledForTVL = tab === 'TVL' && label === '1H'
+                  const disabledForTVL = tab === 'TVL' && (label === '1H' || label === '1D')
                   return (
                     <button key={label} onClick={() => !disabledForTVL && setRange(label)} style={{
                       padding: '5px 12px', borderRadius: '6px',

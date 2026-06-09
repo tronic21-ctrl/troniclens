@@ -18,12 +18,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Tentukan interval berdasarkan days
-    const intervalParam = days <= 1 ? 'minutely' : days <= 90 ? 'hourly' : 'daily'
-    
+    // Exclude interval parameter for hourly/minutely data as CoinGecko only supports interval=daily
+    const url = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}` + (parseFloat(days) > 90 ? '&interval=daily' : '')
+
     // Line chart data
     const priceRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}&interval=${intervalParam}`,
+      url,
       { headers: { 'Accept': 'application/json' } }
     )
 
