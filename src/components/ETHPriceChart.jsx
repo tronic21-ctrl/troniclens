@@ -150,9 +150,8 @@ function CandlestickChart({ ohlcData, isPositive, fullscreen = false }) {
 
       // Format OHLC data for lightweight-charts
       const formatted = ohlcData
-        .filter(item => item && item[0]) // Pengaman ekstra agar tidak ada data null yang lolos
         .map(([ts, o, h, l, c]) => ({
-          time: Math.floor(Number(ts) / 1000), // Memaksa pembulatan ke satuan detik murni
+          time: Math.floor(ts / 1000),
           open: o, high: h, low: l, close: c,
         }))
         .sort((a, b) => a.time - b.time)
@@ -251,7 +250,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         const priceJson = await priceRes.json()
         const ohlcJson = ohlcRes.ok ? await ohlcRes.json() : []
         const filteredOhlc = days === '0.04'
-        ? ohlcJson.filter(([ts]) => ts >= Date.now() - 12 * 60 * 60 * 1000)
+        ? ohlcJson.filter(([ts]) => ts >= Date.now() - 4 * 60 * 60 * 1000)
         : ohlcJson
 
         const prices = priceJson.prices.map(([ts, p]) => ({
@@ -500,12 +499,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           {/* Tabs */}
           <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
             {TABS.map(t => (
-              <button key={t} onClick={() => {
-                setTab(t)
-                if (t === 'TVL' && (range === '1H' || range === '1D')) {
-                  setRange('1W')
-                }
-              }} style={{
+              <button key={t} onClick={() => setTab(t)} style={{
                 padding: '4px 12px', borderRadius: '6px',
                 border: 'none',
                 background: tab === t ? '#0e2040' : 'none',
@@ -519,7 +513,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           {/* Time ranges */}
           <div style={{ display: 'flex', gap: '2px' }}>
             {TIME_RANGES.map(({ label }) => {
-              const disabledForTVL = tab === 'TVL' && (label === '1H' || label === '1D')
+              const disabledForTVL = tab === 'TVL' && label === '1H'
               return (
                 <button key={label}
                   onClick={() => !disabledForTVL && setRange(label)}
@@ -750,12 +744,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             }}>
               <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
                 {TABS.map(t => (
-                  <button key={t} onClick={() => {
-                    setTab(t)
-                    if (t === 'TVL' && (range === '1H' || range === '1D')) {
-                      setRange('1W')
-                    }
-                  }} style={{
+                  <button key={t} onClick={() => setTab(t)} style={{
                     padding: '4px 14px', borderRadius: '6px', border: 'none',
                     background: tab === t ? '#0e2040' : 'none',
                     color: tab === t ? C.text : C.dim,
@@ -765,7 +754,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 {TIME_RANGES.map(({ label }) => {
-                  const disabledForTVL = tab === 'TVL' && (label === '1H' || label === '1D')
+                  const disabledForTVL = tab === 'TVL' && label === '1H'
                   return (
                     <button key={label} onClick={() => !disabledForTVL && setRange(label)} style={{
                       padding: '5px 12px', borderRadius: '6px',
