@@ -217,24 +217,30 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
   // Fetch price + volume + ohlc
   const fetchPriceData = useCallback(async (r) => {
+    const days = TIME_RANGES.find(x => x.label === r)?.days || '1'
+    const cacheKey = `price-${days}`
+
+    // 1. Ambil dari cache jika sudah pernah di-fetch sebelumnya (Berlaku di Local & Vercel)
+    if (devCache[cacheKey]) {
+      const cached = devCache[cacheKey]
+      setPriceData(cached.prices)
+      setVolumeData(cached.volumes)
+      setOhlcData(cached.ohlc)
+      setPriceChange(cached.priceChange)
+      // LANGSUNG MATIKAN LOADING AGAR CHART TIDAK BERKEDIP / TETAP SMOOTH
+      setLoading(false)
+      setError(null)
+      return
+    }
+
+    // Jika data belum ada di cache, baru jalankan state loading & error reset
     setLoading(true)
     setError(null)
+
     try {
-      const days = TIME_RANGES.find(x => x.label === r)?.days || '1'
       const isDev = import.meta.env.DEV
 
       if (isDev) {
-        const cacheKey = `price-${days}`
-        if (devCache[cacheKey]) {
-          const cached = devCache[cacheKey]
-          setPriceData(cached.prices)
-          setVolumeData(cached.volumes)
-          setOhlcData(cached.ohlc)
-          setPriceChange(cached.priceChange)
-          setLoading(false)
-          return
-        }
-
         const [priceRes, ohlcRes] = await Promise.all([
           fetch(`https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}`),
           fetch(`https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${days === '0.04' ? '1' : days}`),
@@ -250,8 +256,8 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         const priceJson = await priceRes.json()
         const ohlcJson = ohlcRes.ok ? await ohlcRes.json() : []
         const filteredOhlc = days === '0.04'
-        ? ohlcJson.filter(([ts]) => ts >= Date.now() - 4 * 60 * 60 * 1000)
-        : ohlcJson
+          ? ohlcJson.filter(([ts]) => ts >= Date.now() - 4 * 60 * 60 * 1000)
+          : ohlcJson
 
         const prices = priceJson.prices.map(([ts, p]) => ({
           time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts,
@@ -259,6 +265,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         const volumes = priceJson.total_volumes.map(([ts, v]) => ({
           time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts,
         }))
+        
         const first = prices[0]?.price
         const last = prices[prices.length - 1]?.price
         const change = last - first
@@ -268,60 +275,65 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
           positive: change >= 0,
         }
 
+        // Simpan ke Cache Local
         devCache[cacheKey] = { prices, volumes, ohlc: filteredOhlc, priceChange: pc }
+
         setPriceData(prices)
         setVolumeData(volumes)
         setOhlcData(filteredOhlc)
         setPriceChange(pc)
-        } else {
-          // Production: use Vercel proxy
-          // JIKA range 1H (0.04), paksa minta data 1 hari ke proxy agar API CoinGecko tidak error/empty
-          const apiDays = days === '0.04' ? '1' : days
-          const res = await fetch(`/api/price-history?days=${apiDays}`)
-          const data = await res.json()
+      } else {
+        // Production: use Vercel proxy
+        const apiDays = days === '0.04' ? '1' : days
+        const res = await fetch(`/api/price-history?days=${apiDays}`)
+        if (!res.ok) throw new Error('Failed to fetch from proxy')
+        const data = await res.json()
 
-          const rawPrices = data.prices || []
-          const rawVolumes = data.volumes || []
-          const rawOhlc = data.ohlc || []
+        const rawPrices = data.prices || []
+        const rawVolumes = data.volumes || []
+        const rawOhlc = data.ohlc || []
 
-          const cutoff = Date.now() - 60 * 60 * 1000
+        const cutoff = Date.now() - 60 * 60 * 1000
 
-          // Saring data untuk 1 jam terakhir jika range yang dipilih 1H
-          const filteredPrices = days === '0.04' 
-            ? rawPrices.filter(([ts]) => ts >= cutoff) 
-            : rawPrices
+        const filteredPrices = days === '0.04' 
+          ? rawPrices.filter(([ts]) => ts >= cutoff) 
+          : rawPrices
 
-          const filteredVolumes = days === '0.04' 
-            ? rawVolumes.filter(([ts]) => ts >= cutoff) 
-            : rawVolumes
+        const filteredVolumes = days === '0.04' 
+          ? rawVolumes.filter(([ts]) => ts >= cutoff) 
+          : rawVolumes
 
-          const filteredOhlc = days === '0.04'
-            ? rawOhlc.filter(([ts]) => ts >= cutoff)
-            : rawOhlc
+        const filteredOhlc = days === '0.04'
+          ? rawOhlc.filter(([ts]) => ts >= cutoff)
+          : rawOhlc
 
-          const prices = filteredPrices.map(([ts, p]) => ({
-            time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts,
-          }))
-          const volumes = filteredVolumes.map(([ts, v]) => ({
-            time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts,
-          }))
+        const prices = filteredPrices.map(([ts, p]) => ({
+          time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts,
+        }))
+        const volumes = filteredVolumes.map(([ts, v]) => ({
+          time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts,
+        }))
 
-          setPriceData(prices)
-          setVolumeData(volumes)
-          setOhlcData(filteredOhlc)
+        setPriceData(prices)
+        setVolumeData(volumes)
+        setOhlcData(filteredOhlc)
 
-          if (prices.length > 0) {
-            const first = prices[0]?.price
-            const last = prices[prices.length - 1]?.price
-            const change = last - first
-            setPriceChange({
-              value: Math.abs(change).toFixed(2),
-              pct: Math.abs((change / first) * 100).toFixed(2),
-              positive: change >= 0,
-            })
+        if (prices.length > 0) {
+          const first = prices[0]?.price
+          const last = prices[prices.length - 1]?.price
+          const change = last - first
+          const pc = {
+            value: Math.abs(change).toFixed(2),
+            pct: Math.abs((change / first) * 100).toFixed(2),
+            positive: change >= 0,
           }
+          
+          setPriceChange(pc)
+
+          // SIMPAN KE CACHE DI PRODUCTION (VERCEL)
+          devCache[cacheKey] = { prices, volumes, ohlc: filteredOhlc, priceChange: pc }
         }
-      } catch (err) {
+      }
         setError(err.message)
         const retryAfter = err.retryAfter || 60
         // Hanya set timer baru kalau belum ada timer yang jalan
@@ -758,59 +770,36 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               </div>
             </div>
 
-            {/* Fullscreen tabs + ranges */}
-            <div style={{
-              padding: '10px 16px',
-              borderBottom: `1px solid ${C.border}`,
-              backgroundColor: '#040a14',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
-            }}>
-              <div style={{ display: 'flex', gap: '2px', background: '#060d1a', borderRadius: '8px', padding: '3px' }}>
-                {TABS.map(t => (
-                  <button key={t} onClick={() => setTab(t)} style={{
-                    padding: '4px 14px', borderRadius: '6px', border: 'none',
-                    background: tab === t ? '#0e2040' : 'none',
-                    color: tab === t ? C.text : C.dim,
-                    fontSize: '13px', fontWeight: tab === t ? 600 : 400, cursor: 'pointer',
-                  }}>{t}</button>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {TIME_RANGES.map(({ label }) => {
-                  const disabledForTVL = tab === 'TVL' && label === '1H'
-                  return (
-                    <button key={label} onClick={() => !disabledForTVL && setRange(label)} style={{
-                      padding: '5px 12px', borderRadius: '6px',
-                      border: range === label && !disabledForTVL ? `1px solid ${C.cyan}50` : '1px solid transparent',
-                      background: range === label && !disabledForTVL ? `${C.cyan}15` : 'none',
-                      color: disabledForTVL ? '#1e3a5f' : range === label ? C.cyan : C.dim,
-                      fontSize: '13px', fontWeight: 600, cursor: disabledForTVL ? 'not-allowed' : 'pointer',
-                      opacity: disabledForTVL ? 0.4 : 1,
-                    }}>{label}</button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Fullscreen chart */}
-             <div style={{ flex: 1, padding: '8px 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              {loading ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            {/* Fullscreen chart — Perbaikan Transisi Morphing (LENGKAP) */}
+            <div style={{ flex: 1, padding: '8px 0', display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative', width: '100%' }}>
+              
+              {/* Overlay Loading: Hanya aktif jika data murni belum terisi di cache */}
+              {loading && (!priceData || priceData.length === 0) && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#040a14', zIndex: 10 }}>
                   <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
                     style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
                 </div>
-              ) : error ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
-                  <span style={{ color: C.dim, fontSize: '13px' }}>CoinGecko rate limit reached</span>
+              )}
+
+              {/* Overlay Error Rate Limit */}
+              {error && (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#040a14', zIndex: 11, gap: '12px' }}>
+                  <span style={{ color: C.dim, fontSize: '13px' }}>{error || 'CoinGecko rate limit reached'}</span>
                   {retryIn > 0 && (
                     <span style={{ color: C.amber, fontSize: '12px', fontFamily: 'monospace' }}>Retrying in {retryIn}s...</span>
                   )}
                 </div>
-              ) : tab === 'Price' && chartType === 'candle' ? (
+              )}
+
+              {/* Render Candle: Berdiri sendiri terpisah dari line chart */}
+              {tab === 'Price' && chartType === 'candle' && (
                 <div style={{ padding: '0 8px', flex: 1, minHeight: 0 }}>
                   <CandlestickChart ohlcData={ohlcData} isPositive={isPositive} fullscreen={true} />
                 </div>
-              ) : tab === 'Price' ? (
+              )}
+
+              {/* Render Area/Line Chart: Tetap stay di DOM saat loading agar morphing Recharts bekerja */}
+              {tab === 'Price' && chartType === 'line' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={priceData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <defs>
@@ -823,20 +812,26 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis domain={['auto','auto']} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => '$'+v.toLocaleString()} width={76}/>
                     <Tooltip content={<ChartTooltip tab="Price" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
-                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }}/>
+                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true}/>
                   </AreaChart>
                 </ResponsiveContainer>
-              ) : tab === 'Volume' ? (
+              )}
+
+              {/* Render Volume Chart */}
+              {tab === 'Volume' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={volumeData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#0e2040" vertical={false}/>
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={76}/>
                     <Tooltip content={<ChartTooltip tab="Volume" range={range}/>} cursor={{ fill: `${C.purple}10` }}/>
-                    <Bar dataKey="volume" fill={C.purple} fillOpacity={0.8} radius={[2,2,0,0]}/>
+                    <Bar dataKey="volume" fill={C.purple} fillOpacity={0.8} radius={[2,2,0,0]} isAnimationActive={true}/>
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
+              )}
+
+              {/* Render TVL Chart */}
+              {tab === 'TVL' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={tvlData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <defs>
@@ -851,8 +846,8 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v+'B'} width={56}/>
                     <Tooltip content={<ChartTooltip tab="TVL" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
-                    <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false}/>
-                    <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false}/>
+                    <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false} isAnimationActive={true}/>
+                    <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false} isAnimationActive={true}/>
                   </AreaChart>
                 </ResponsiveContainer>
               )}
