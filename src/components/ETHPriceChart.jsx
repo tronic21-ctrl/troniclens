@@ -150,8 +150,9 @@ function CandlestickChart({ ohlcData, isPositive, fullscreen = false }) {
 
       // Format OHLC data for lightweight-charts
       const formatted = ohlcData
+        .filter(item => item && item[0]) // Pengaman ekstra agar tidak ada data null yang lolos
         .map(([ts, o, h, l, c]) => ({
-          time: Math.floor(ts / 1000),
+          time: Math.floor(Number(ts) / 1000), // Memaksa pembulatan ke satuan detik murni
           open: o, high: h, low: l, close: c,
         }))
         .sort((a, b) => a.time - b.time)
@@ -250,7 +251,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         const priceJson = await priceRes.json()
         const ohlcJson = ohlcRes.ok ? await ohlcRes.json() : []
         const filteredOhlc = days === '0.04'
-        ? ohlcJson.filter(([ts]) => ts >= Date.now() - 60 * 60 * 1000)
+        ? ohlcJson.filter(([ts]) => ts >= Date.now() - 12 * 60 * 60 * 1000)
         : ohlcJson
 
         const prices = priceJson.prices.map(([ts, p]) => ({
