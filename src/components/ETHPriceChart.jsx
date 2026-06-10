@@ -214,6 +214,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
   const [error, setError] = useState(null)
   const [retryIn, setRetryIn] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const [priceChange, setPriceChange] = useState({ value: 0, pct: 0, positive: true })
 
   // Fetch price + volume + ohlc
@@ -537,6 +538,20 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
       {/* ── CHART AREA ── */}
        <div style={{ padding: '8px 0 0', height: '240px', position: 'relative' }}>
+        {error && tab !== 'TVL' && priceData.length > 0 && (
+          <div style={{
+            position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 10, display: 'flex', alignItems: 'center', gap: '8px',
+            background: '#0d1829', border: `1px solid ${C.amber}30`,
+            borderRadius: '8px', padding: '5px 12px', whiteSpace: 'nowrap',
+          }}>
+            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}
+              style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: C.amber, flexShrink: 0 }} />
+            <span style={{ color: C.amber, fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
+              {retryIn > 0 ? `Rate limit — retrying in ${retryIn}s` : 'Rate limit reached'}
+            </span>
+          </div>
+        )}
         {loading && tab !== 'TVL' && priceData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
@@ -841,7 +856,9 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               <span style={{ color: C.dim, fontSize: '10px' }}>
                 {tab === 'TVL' ? 'ETH Ecosystem TVL via DeFiLlama · TronicLens TVL via The Graph' : 'Historical data via CoinGecko · Live price via Chainlink'}
               </span>
-              <span style={{ color: C.dim, fontSize: '10px' }}>Rotate device for best experience</span>
+              {isMobile && (
+                <span style={{ color: C.dim, fontSize: '10px' }}>Rotate device for best experience</span>
+              )}
             </div>
           </motion.div>
         )}
