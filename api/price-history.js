@@ -48,7 +48,9 @@ export default async function handler(req, res) {
       fetchedAt: now,
     }
 
-    cache[cacheKey] = { data: result, timestamp: now }
+    if (ohlcData.length > 0) {
+      cache[cacheKey] = { data: result, timestamp: now }
+    }
     return res.status(200).json(result)
 
   } catch (err) {
