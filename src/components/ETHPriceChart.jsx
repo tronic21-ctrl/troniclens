@@ -538,26 +538,12 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
       {/* ── CHART AREA ── */}
        <div style={{ padding: '8px 0 0', height: '240px', position: 'relative' }}>
-        {error && tab !== 'TVL' && priceData.length > 0 && (
-          <div style={{
-            position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)',
-            zIndex: 10, display: 'flex', alignItems: 'center', gap: '8px',
-            background: '#0d1829', border: `1px solid ${C.amber}30`,
-            borderRadius: '8px', padding: '5px 12px', whiteSpace: 'nowrap',
-          }}>
-            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}
-              style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: C.amber, flexShrink: 0 }} />
-            <span style={{ color: C.amber, fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
-              {retryIn > 0 ? `Rate limit — retrying in ${retryIn}s` : 'Rate limit reached'}
-            </span>
-          </div>
-        )}
-        {loading && tab !== 'TVL' && priceData.length === 0 ? (
+        {loading && tab !== 'TVL' ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
               style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
           </div>
-          ) : error && tab !== 'TVL' && priceData.length === 0 ? (
+          ) : error && tab !== 'TVL' ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.amber} strokeWidth="1.5" strokeLinecap="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -669,7 +655,11 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         <span style={{ color: C.dim, fontSize: '10px' }}>
           {tab === 'TVL'
             ? 'ETH Ecosystem TVL via DeFiLlama · TronicLens TVL via The Graph'
-            : 'Historical data via CoinGecko · Live price via Chainlink'}
+            : tab === 'Volume'
+            ? 'Volume data via CoinGecko'
+            : chartType === 'candle'
+            ? 'OHLC data via CoinGecko · Chart by TradingView'
+            : 'Historical price data via CoinGecko'}
         </span>
         {chainlinkPrice?.updatedAt && (
           <span style={{ color: C.dim, fontSize: '10px' }}>Updated {chainlinkPrice.updatedAt}</span>
@@ -854,7 +844,13 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             {/* Fullscreen footer */}
             <div style={{ padding: '8px 16px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: C.dim, fontSize: '10px' }}>
-                {tab === 'TVL' ? 'ETH Ecosystem TVL via DeFiLlama · TronicLens TVL via The Graph' : 'Historical data via CoinGecko · Live price via Chainlink'}
+                {tab === 'TVL'
+                ? 'ETH Ecosystem TVL via DeFiLlama · TronicLens TVL via The Graph'
+                : tab === 'Volume'
+                ? 'Volume data via CoinGecko'
+                : chartType === 'candle'
+                ? 'OHLC data via CoinGecko · Chart by TradingView'
+                : 'Historical price data via CoinGecko'}
               </span>
               {isMobile && (
                 <span style={{ color: C.dim, fontSize: '10px' }}>Rotate device for best experience</span>
