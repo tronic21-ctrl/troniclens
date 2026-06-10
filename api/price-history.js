@@ -32,8 +32,9 @@ export default async function handler(req, res) {
     const priceData = await priceRes.json()
 
     // OHLC data untuk candlestick
+    const ohlcDays = parseFloat(days) < 1 ? '1' : String(Math.round(parseFloat(days)))
     const ohlcRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${parseFloat(days) < 1 ? '1' : days}`,
+      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${ohlcDays}`,
       { headers: { 'Accept': 'application/json' } }
     )
 

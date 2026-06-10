@@ -537,21 +537,12 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
       {/* ── CHART AREA ── */}
        <div style={{ padding: '8px 0 0', height: '240px', position: 'relative' }}>
-        <AnimatePresence mode="wait">
-        <motion.div
-          key={`${tab}-${range}-${chartType}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          style={{ width: '100%', height: '100%' }}
-        >
-        {loading && tab !== 'TVL' ? (
+        {loading && tab !== 'TVL' && priceData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
               style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
           </div>
-          ) : error && tab !== 'TVL' ? (
+          ) : error && tab !== 'TVL' && priceData.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.amber} strokeWidth="1.5" strokeLinecap="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -602,7 +593,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
               <YAxis domain={['auto', 'auto']} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => '$' + v.toLocaleString()} width={72} />
               <Tooltip content={<ChartTooltip tab="Price" range={range} />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
-              <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#priceGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }} />
+              <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#priceGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
             </AreaChart>
           </ResponsiveContainer>
         ) : tab === 'Volume' ? (
@@ -644,8 +635,6 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             </ResponsiveContainer>
           )
         ) : null}
-        </motion.div>
-        </AnimatePresence>
       </div>
 
       {/* ── LEGEND (TVL only) ── */}
@@ -783,7 +772,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
             {/* Fullscreen chart */}
              <div style={{ flex: 1, padding: '8px 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              {loading ? (
+              {loading && priceData.length === 0 ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
                     style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
@@ -812,7 +801,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis domain={['auto','auto']} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => '$'+v.toLocaleString()} width={76}/>
                     <Tooltip content={<ChartTooltip tab="Price" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
-                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }}/>
+                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : tab === 'Volume' ? (
@@ -840,8 +829,8 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => v+'B'} width={56}/>
                     <Tooltip content={<ChartTooltip tab="TVL" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
-                    <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false}/>
-                    <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false}/>
+                    <Area type="monotone" dataKey="globalTVL" name="ETH Ecosystem" stroke={C.cyan} strokeWidth={2} fill="url(#fsTVL1)" dot={false} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
+                    <Area type="monotone" dataKey="tronicTVL" name="TronicLens" stroke={C.green} strokeWidth={2} fill="url(#fsTVL2)" dot={false} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
