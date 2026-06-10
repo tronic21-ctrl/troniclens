@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET')
 
   const now = Date.now()
-  const { days = '1', interval } = req.query
+  const { days = '1' } = req.query
   const cacheKey = String(days)
 
   // Return dari cache kalau masih fresh
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     // OHLC data untuk candlestick
     const ohlcRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${days}`,
+      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${parseFloat(days) < 1 ? '1' : days}`,
       { headers: { 'Accept': 'application/json' } }
     )
 

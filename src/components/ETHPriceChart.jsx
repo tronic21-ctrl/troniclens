@@ -40,14 +40,15 @@ function fmt$(v) {
   return '$' + v.toFixed(2)
 }
 
+// AFTER:
 function fmtTime(ts, days) {
   const d = new Date(ts)
   const n = parseFloat(days)
   if (n <= 0.04) return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  if (n <= 1) return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  if (n <= 7) return d.toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit' })
-  if (n <= 30) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  return d.toLocaleDateString('en-US', { month: 'short' })
+  if (n <= 1)    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  if (n <= 7)    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  if (n <= 30)   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
 }
 
 // ── Custom Tooltip ────────────────────────────────────────────────
@@ -535,7 +536,16 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
       </div>
 
       {/* ── CHART AREA ── */}
-      <div style={{ padding: '8px 0 0', height: '240px' }}>
+       <div style={{ padding: '8px 0 0', height: '240px', position: 'relative' }}>
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={`${tab}-${range}-${chartType}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          style={{ width: '100%', height: '100%' }}
+        >
         {loading && tab !== 'TVL' ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
@@ -634,6 +644,8 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             </ResponsiveContainer>
           )
         ) : null}
+        </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* ── LEGEND (TVL only) ── */}
