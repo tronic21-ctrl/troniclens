@@ -5,8 +5,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWhaleActivity } from '../hooks/useWhaleActivity'
-import { useSettings } from '../context/SettingsContext'
-import { COLORS } from '../utils/colors'
+import { useSettings, useThemeColors } from '../context/SettingsContext'
 import { useAccount } from 'wagmi'
 import { useAppKit } from '@reown/appkit/react'
 import AlertsContent from './Alerts'
@@ -17,6 +16,7 @@ import ETHPriceChart from '../components/ETHPriceChart'
 // ─── Shared Components ───────────────────────────────────────────
 
 function WalletButton() {
+  const COLORS = useThemeColors()
   const { address, isConnected } = useAccount()
   const { open } = useAppKit()
 
@@ -39,7 +39,7 @@ function WalletButton() {
         transition={{ duration: 2, repeat: Infinity }}
         style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981', flexShrink: 0, marginRight: '4px' }}
       />
-      <span style={{ color: '#e2e8f0', fontSize: '13px', fontWeight: 600, fontFamily: 'monospace', letterSpacing: '0.03em' }}>
+      <span style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600, fontFamily: 'monospace', letterSpacing: '0.03em' }}>
         {`${address.slice(0, 6)}...${address.slice(-4)}`}
       </span>
     </motion.button>
@@ -120,7 +120,8 @@ function PageBackground({ accentColor = '#38bdf8', accentColor2 = '#818cf8' }) {
   )
 }
 
-function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
+function PageHeader({ title, subtitle, badge, badgeColor }) {
+  const COLORS = useThemeColors()
   const { settings } = useSettings()
   const compact = settings.compactMode
   const isLive = badge && (
@@ -187,7 +188,8 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
   )
 }
 
-function StatCard({ label, value, sub, accent = COLORS.cyan, delay = 0, icon }) {
+function StatCard({ label, value, sub, accent, delay = 0, icon }) {
+  const COLORS = useThemeColors()
   const { settings } = useSettings()
   const compact = settings.compactMode
   return (
@@ -234,7 +236,9 @@ function StatCard({ label, value, sub, accent = COLORS.cyan, delay = 0, icon }) 
   )
 }
 
-function ComingSoonSection({ title, subtitle, icon, color = COLORS.cyan, features = [] }) {
+function ComingSoonSection({ title, subtitle, icon, color, features = [] }) {
+  const COLORS = useThemeColors()
+  const resolvedColor = color ?? COLORS.cyan 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -257,7 +261,7 @@ function ComingSoonSection({ title, subtitle, icon, color = COLORS.cyan, feature
         fontSize: '11px', fontWeight: 700, letterSpacing: '0.12em',
         color: COLORS.amber, textTransform: 'uppercase',
         border: '1px solid #f59e0b40', backgroundColor: '#f59e0b10',
-        padding: '4px 12px', borderRadius: '4px', marginBottom: '16px',
+        padding: '4px 12px', borderRadius: '50px', marginBottom: '16px',
         display: 'inline-block',
       }}>
         Coming Soon
@@ -316,6 +320,7 @@ function ComingSoonSection({ title, subtitle, icon, color = COLORS.cyan, feature
 
 // Toggle switch
 function Toggle({ value, onChange }) {
+  const COLORS = useThemeColors()
   return (
     <div
       onClick={() => onChange(!value)}
@@ -348,6 +353,7 @@ function Toggle({ value, onChange }) {
 
 // Option pill selector
 function PillSelector({ options, value, onChange }) {
+  const COLORS = useThemeColors()
   return (
     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
       {options.map(opt => {
@@ -379,6 +385,7 @@ function PillSelector({ options, value, onChange }) {
 
 // Settings row wrapper
 function SettingRow({ label, description, children, delay = 0 }) {
+  const COLORS = useThemeColors()
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -411,6 +418,7 @@ function SettingRow({ label, description, children, delay = 0 }) {
 
 // Settings card wrapper
 function SettingsCard({ title, icon, children, delay = 0 }) {
+  const COLORS = useThemeColors()
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -441,6 +449,7 @@ function SettingsCard({ title, icon, children, delay = 0 }) {
 // ─── Section: Settings ────────────────────────────────────────────
 
 function SettingsContent() {
+  const COLORS = useThemeColors()
   const { settings, updateSetting, resetSettings } = useSettings()
   const [resetConfirm, setResetConfirm] = useState(false)
   const [saveFlash, setSaveFlash] = useState(false)
@@ -482,7 +491,7 @@ function SettingsContent() {
               fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
               color: COLORS.textDim, textTransform: 'uppercase',
               border: `1px solid ${COLORS.cardBorder}`,
-              padding: '3px 10px', borderRadius: '4px',
+              padding: '3px 10px', borderRadius: '50px',
               backgroundColor: `${COLORS.cardBorder}40`,
               marginBottom: '10px',
             }}>
@@ -525,6 +534,20 @@ function SettingsContent() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+        {/* Appearance */}
+        <SettingsCard title="Appearance" delay={0.05}>
+          <SettingRow
+            label="Theme"
+            description="Switch between dark and light mode"
+            delay={0.08}
+          >
+            <Toggle
+              value={settings.theme === 'light'}
+              onChange={(v) => handleUpdate('theme', v ? 'light' : 'dark')}
+            />
+          </SettingRow>
+        </SettingsCard>
 
         {/* Dashboard Preferences */}
         <SettingsCard title="Dashboard" icon="" delay={0.1}>
@@ -718,11 +741,14 @@ function SettingsContent() {
 // ─── Section: About ───────────────────────────────────────────────
 
 function AboutContent() {
+  const { settings } = useSettings()
+  const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
+  const COLORS = useThemeColors()
   const links = [
     {
       label: 'GitHub',
       url: 'https://github.com/tronic21-ctrl/troniclens',
-      icon: <img src="/logos/GitHub_Invertocat_White.svg" alt="GitHub" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+      icon: <img src="/logos/GitHub_Invertocat_White.svg" alt="GitHub" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: whiteLogo }} />
     },
     {
       label: 'Portfolio',
@@ -732,12 +758,12 @@ function AboutContent() {
     {
       label: 'ETHGlobal',
       url: 'https://ethglobal.com/events/ethonline2026',
-      icon: <img src="/logos/ETHGlobal_Logomark_White.svg" alt="ETHGlobal" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+      icon: <img src="/logos/ETHGlobal_Logomark_White.svg" alt="ETHGlobal" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: whiteLogo }} />
     },
     {
       label: 'Instagram',
       url: 'https://instagram.com/rikotronic',
-      icon: <img src="/logos/Instagram_Glyph_White.svg" alt="Instagram" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+      icon: <img src="/logos/Instagram_Glyph_White.svg" alt="Instagram" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: whiteLogo }} />
     },
   ]
 
@@ -783,7 +809,7 @@ function AboutContent() {
               <span key={tag} style={{
                 fontSize: '11px', fontWeight: 600, color: COLORS.cyan,
                 border: `1px solid ${COLORS.cyan}40`, backgroundColor: COLORS.cyanDim,
-                padding: '3px 10px', borderRadius: '4px',
+                padding: '3px 10px', borderRadius: '50px',
               }}>{tag}</span>
             ))}
           </div>
@@ -851,7 +877,7 @@ function AboutContent() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {stack.map(item => (
               <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src={item.logo} alt={item.name} style={{ width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 }} />
+                <img src={item.logo} alt={item.name} style={{ width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0, filter: ['The Graph', 'Chainlink', '0G Storage', '0G Compute'].includes(item.name) ? whiteLogo : 'none' }} />
                 <div>
                   <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600 }}>{item.name}</p>
                   <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>{item.desc}</p>
@@ -879,6 +905,8 @@ function AboutContent() {
 // ─── Onboarding Popup ─────────────────────────────────────────────
 
 function OnboardingPopup({ onClose }) {
+  const COLORS = useThemeColors()
+  const { settings } = useSettings() 
   const [step, setStep] = useState(0)
   const steps = [
     {
@@ -972,8 +1000,8 @@ function OnboardingPopup({ onClose }) {
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: 'rgba(10, 22, 40, 0.95)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: COLORS.card,
+          border: `1px solid ${COLORS.cardBorder}`,
           borderRadius: '24px',
           maxWidth: '440px',
           width: '100%',
@@ -984,10 +1012,12 @@ function OnboardingPopup({ onClose }) {
         {/* Visual area */}
         <div style={{
           height: '150px',
-          background: 'linear-gradient(135deg, #060d19 0%, #0d1e33 100%)',
+          background: settings.theme === 'light'
+            ? `linear-gradient(135deg, ${COLORS.bg} 0%, ${COLORS.chartHeader} 100%)`
+            : 'linear-gradient(135deg, #060d19 0%, #0d1e33 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative', overflow: 'hidden',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
         }}>
           {/* Decorative glowing blobs */}
           <div style={{
@@ -1065,7 +1095,7 @@ function OnboardingPopup({ onClose }) {
               <div key={i} style={{
                 width: i === step ? '24px' : '8px', height: '8px',
                 borderRadius: '4px',
-                backgroundColor: i === step ? current.badgeColor : 'rgba(255,255,255,0.15)',
+                backgroundColor: i === step ? current.badgeColor : COLORS.cardBorder,
                 boxShadow: i === step ? `0 0 10px ${current.badgeColor}b0` : 'none',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }} />
@@ -1095,7 +1125,7 @@ function OnboardingPopup({ onClose }) {
               {current.badge}
             </span>
             <h3 style={{
-              color: '#f8fafc',
+              color: COLORS.text,
               fontSize: '20px',
               fontWeight: 800,
               marginBottom: '10px',
@@ -1106,7 +1136,7 @@ function OnboardingPopup({ onClose }) {
               {current.title}
             </h3>
             <p style={{
-              color: '#94a3b8',
+              color: COLORS.textDim,
               fontSize: '13.5px',
               lineHeight: '1.65',
               marginBottom: '20px',
@@ -1119,14 +1149,14 @@ function OnboardingPopup({ onClose }) {
             <div style={{
               padding: '12px 16px',
               borderRadius: '12px',
-              backgroundColor: 'rgba(6, 13, 26, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
+              backgroundColor: COLORS.bg,
+              border: `1px solid ${COLORS.cardBorder}`,
               display: 'flex',
               marginBottom: '24px',
               boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.4)',
             }}>
               <span style={{
-                color: '#94a3b8',
+                color: COLORS.textDim,
                 fontSize: '12px',
                 fontFamily: "'DM Sans', sans-serif",
                 lineHeight: 1.5,
@@ -1146,8 +1176,9 @@ function OnboardingPopup({ onClose }) {
                 style={{
                   flex: '1 1 30%', padding: '12px',
                   background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px', color: '#94a3b8',
+                  background: COLORS.bg,
+                  border: `1px solid ${COLORS.cardBorder}`,
+                  color: COLORS.textDim,
                   fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                   transition: 'border-color 0.2s, color 0.2s',
                 }}
@@ -1194,13 +1225,13 @@ function OnboardingPopup({ onClose }) {
               style={{
                 width: '100%', marginTop: '12px', padding: '6px',
                 background: 'none', border: 'none',
-                color: '#64748b', fontSize: '12px', cursor: 'pointer',
+                color: COLORS.textMuted, fontSize: '12px', cursor: 'pointer',
                 fontFamily: "'DM Sans', sans-serif",
                 fontWeight: 500,
                 transition: 'color 0.2s',
               }}
-              onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
-              onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
+              onMouseEnter={e => e.currentTarget.style.color = COLORS.textDim}
+              onMouseLeave={e => e.currentTarget.style.color = COLORS.textMuted}
             >
               Skip intro
             </button>
@@ -1214,6 +1245,7 @@ function OnboardingPopup({ onClose }) {
 // ─── Section: Overview ────────────────────────────────────────────
 
 function OverviewContent() {
+  const COLORS = useThemeColors()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [showOnboarding, setShowOnboarding] = useState(() => {
     return !sessionStorage.getItem('troniclens_onboarding_seen')
@@ -1223,6 +1255,7 @@ function OverviewContent() {
     setShowOnboarding(false)
   }
     const { settings } = useSettings()
+    const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -1288,7 +1321,7 @@ function OverviewContent() {
             />
             <h1 style={{
               fontSize: '30px', fontWeight: 800,
-              background: `linear-gradient(135deg, ${COLORS.text}, ${COLORS.cyan})`,
+              background: `linear-gradient(135deg, ${COLORS.cyan}, ${COLORS.purple})`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               fontFamily: "'DM Sans', sans-serif",
               letterSpacing: '-0.03em', margin: 0,
@@ -1316,7 +1349,7 @@ function OverviewContent() {
             }}
           >
             <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
-              <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '12px', height: '12px', objectFit: 'contain', marginRight: '6px', verticalAlign: 'middle', opacity: 0.8 }} />
+              <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '12px', height: '12px', objectFit: 'contain', marginRight: '6px', verticalAlign: 'middle', opacity: 0.8, filter: whiteLogo }} />
               Chainlink · {chainlinkPrice.pair}
             </p>
             <p style={{ color: COLORS.cyan, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>
@@ -1345,6 +1378,7 @@ function OverviewContent() {
 // ─── Section: Staking Activity ────────────────────────────────────
 
 function WhaleActivityContent() {
+  const COLORS = useThemeColors()
   const { settings } = useSettings()
   const { activities, allActivities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD } = useWhaleActivity({
     refreshInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : null,
@@ -1382,6 +1416,7 @@ function WhaleActivityContent() {
 // ─── Section: Staking Stats ───────────────────────────────────────
 
 function StakingStatsContent() {
+  const COLORS = useThemeColors()
   const { settings } = useSettings()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   useEffect(() => {
@@ -1410,7 +1445,7 @@ function StakingStatsContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
           style={{
-            backgroundColor: '#060d1a',
+            backgroundColor: COLORS.card,
             border: `1px solid ${COLORS.cardBorder}`,
             borderRadius: '12px',
             overflow: 'hidden',
@@ -1421,7 +1456,7 @@ function StakingStatsContent() {
           <div style={{
             padding: '10px 16px',
             borderBottom: `1px solid ${COLORS.cardBorder}`,
-            backgroundColor: '#040a14',
+            backgroundColor: COLORS.chartHeader,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ color: COLORS.textDim, fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -1500,7 +1535,7 @@ function StakingStatsContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         style={{
-          backgroundColor: '#060d1a',
+          backgroundColor: COLORS.card,
           border: `1px solid ${COLORS.cardBorder}`,
           borderRadius: '12px',
           overflow: 'hidden',
@@ -1509,7 +1544,7 @@ function StakingStatsContent() {
         <div style={{
           padding: '14px 20px',
           borderBottom: `1px solid ${COLORS.cardBorder}`,
-          backgroundColor: '#040a14',
+          backgroundColor: COLORS.chartHeader,
         }}>
           <h3 style={{ color: COLORS.text, fontSize: '15px', fontWeight: 600, margin: 0 }}>
             Staker Distribution
@@ -1569,7 +1604,9 @@ function StakingStatsContent() {
 // ─── Section: Protocol Health ─────────────────────────────────────
 
 function ProtocolHealthContent() {
+  const COLORS = useThemeColors()
   const { settings } = useSettings()
+  const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
   const [lastSnapshot, setLastSnapshot] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
@@ -1667,7 +1704,7 @@ function ProtocolHealthContent() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>
-                <img src={check.logo} alt={check.label} style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.95 }} />
+                <img src={check.logo} alt={check.label} style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.95, filter: ['The Graph Subgraph', 'Chainlink Feed', '0G Storage'].includes(check.label) ? whiteLogo : 'none' }} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ 
@@ -1779,6 +1816,9 @@ function ProtocolHealthContent() {
 // ─── Section: AI Insights ─────────────────────────────────────────
 
 function AIInsightsContent() {
+  const { settings } = useSettings()
+  const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
+  const COLORS = useThemeColors()
   const [insights, setInsights] = useState(null)
   const [allSnapshots, setAllSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
@@ -1909,7 +1949,7 @@ function AIInsightsContent() {
             />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '20px', height: '20px', objectFit: 'contain', filter: whiteLogo }} />
                 <div>
                   <p style={{ color: COLORS.text, fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>AI Result stored on 0G Network</p>
                   <p style={{ color: COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace' }}>
@@ -1989,8 +2029,8 @@ function AIInsightsContent() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       {snap.type === 'ai-insights'
-                        ? <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
-                        : <img src="/logos/The Graph - Logomark - Light.svg" alt="Snapshot" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+                        ? <img src="/logos/0G-Logo-White.svg" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: whiteLogo }} />
+                        : <img src="/logos/The Graph - Logomark - Light.svg" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: whiteLogo }} />
                       }
                     </span>
                     <div>
@@ -2089,6 +2129,9 @@ function AIInsightsContent() {
 // ─── Shared: Whale Table ──────────────────────────────────────────
 
 function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHALE_THRESHOLD, title, subtitle }) {
+  const { settings } = useSettings()
+  const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
+  const COLORS = useThemeColors()
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   useEffect(() => {
@@ -2103,9 +2146,9 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
       style={{
-        backgroundColor: '#060d1a',
         border: `1px solid ${COLORS.cardBorder}`,
-        borderRadius: '12px',
+        backgroundColor: COLORS.card,
+        borderRadius: '16px',
         overflow: 'hidden',
         position: 'relative',
       }}
@@ -2114,13 +2157,13 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
         padding: '14px 20px',
         borderBottom: `1px solid ${COLORS.cardBorder}`,
-        backgroundColor: '#040a14',
+        backgroundColor: COLORS.chartHeader,
       }}>
         <div>
           <h2 style={{ fontSize: '16px', fontWeight: 700, color: COLORS.text, marginBottom: '2px' }}>
             {title || (
               <>
-                <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '16px', height: '16px', objectFit: 'contain', marginRight: '8px', verticalAlign: 'middle' }} />
+                <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '16px', height: '16px', objectFit: 'contain', marginRight: '8px', verticalAlign: 'middle', filter: whiteLogo }} />
                 Whale Activity Feed
               </>
             )}
@@ -2159,7 +2202,7 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
           gridTemplateColumns: 'minmax(80px, 2fr) minmax(60px, 1fr) minmax(70px, 1.5fr) minmax(50px, 1fr)',
           padding: '8px 20px',
           borderBottom: `1px solid ${COLORS.cardBorder}`,
-          backgroundColor: '#040a14',
+          backgroundColor: COLORS.chartHeader,
         }}>
           {['Wallet', 'Action', 'Amount', 'Time'].map(col => (
             <span key={col} style={{
@@ -2191,6 +2234,7 @@ function WhaleTable({ activities, loading, error, formatTime, formatAddress, WHA
 }
 
 function ActivityRow({ tx, formatTime, formatAddress, index, isMobile }) {
+  const COLORS = useThemeColors()
   const isStake = tx.action === 'STAKE'
   const actionColor = isStake ? COLORS.green : COLORS.red
   const actionBg = isStake ? COLORS.greenDim : COLORS.redDim
@@ -2311,7 +2355,7 @@ function ActivityRow({ tx, formatTime, formatAddress, index, isMobile }) {
             transition: 'color 0.2s',
           }}
           onClick={() => window.open(`https://eth-sepolia.blockscout.com/address/${tx.address}`, '_blank')}
-          onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+          onMouseEnter={e => e.currentTarget.style.color = COLORS.text}
           onMouseLeave={e => e.currentTarget.style.color = COLORS.cyan}
         >
           {formatAddress(tx.address)}
@@ -2356,6 +2400,7 @@ function ActivityRow({ tx, formatTime, formatAddress, index, isMobile }) {
 
 // ─── Skeleton: Overview ───────────────────────────────────────────
 function OverviewSkeleton() {
+  const COLORS = useThemeColors()
   const pulse = { animate: { opacity: [0.3, 0.6, 0.3] }, transition: { duration: 1.5, repeat: Infinity } }
   return (
     <div style={{ padding: '24px 32px' }}>
@@ -2386,6 +2431,7 @@ function OverviewSkeleton() {
 
 // ─── Skeleton: Staking Stats ──────────────────────────────────────
 function StakingStatsSkeleton() {
+  const COLORS = useThemeColors()
   const pulse = { animate: { opacity: [0.3, 0.6, 0.3] }, transition: { duration: 1.5, repeat: Infinity } }
   return (
     <div style={{ padding: '24px 32px' }}>
@@ -2410,6 +2456,7 @@ function StakingStatsSkeleton() {
 }
 
 function LoadingPulse() {
+  const COLORS = useThemeColors()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px' }}>
       {[1, 2, 3].map(i => (
@@ -2427,6 +2474,7 @@ function LoadingPulse() {
 // ─── Main Dashboard ───────────────────────────────────────────────
 
 function Dashboard({ activeItem, mobile, onItemClick }) {
+  const COLORS = useThemeColors()
   // Reset scroll ke top setiap ganti halaman
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -2477,8 +2525,8 @@ function Dashboard({ activeItem, mobile, onItemClick }) {
       {/* Top Bar */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
-        backgroundColor: '#080f20',
-        borderBottom: '1px solid #0e2040',
+        backgroundColor: COLORS.topBar,
+        borderBottom: `1px solid ${COLORS.topBarBorder}`,
         padding: '0 16px',
         height: '52px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

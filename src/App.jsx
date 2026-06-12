@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
-import { SettingsProvider } from './context/SettingsContext'
+import { SettingsProvider, useThemeColors } from './context/SettingsContext'
 import './index.css'
 import { WagmiProvider } from 'wagmi'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -185,6 +185,7 @@ function SplashScreen({ onDone }) {
 
 // ─── App Inner ────────────────────────────────────────────────────
 function AppInner() {
+  const COLORS = useThemeColors()
   const isMobile = () => window.innerWidth < 768
   const [activeItem, setActiveItem] = useState('overview')
   const [collapsed, setCollapsed] = useState(isMobile())
@@ -209,8 +210,9 @@ function AppInner() {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      backgroundColor: '#060d1a',
+      backgroundColor: COLORS.bg,
       position: 'relative',
+      transition: 'background-color 0.35s ease',
     }}>
       <div style={{
         position: mobile ? 'fixed' : 'relative',

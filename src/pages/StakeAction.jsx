@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from 'wagmi'
 import { useAppKit } from '@reown/appkit/react'
 import { parseEther, formatEther } from 'viem'
-import { COLORS } from '../utils/colors'
-import { useSettings } from '../context/SettingsContext'
+import { useSettings, useThemeColors } from '../context/SettingsContext'
 
 const STAKING_ADDRESS = '0x89907e8F6CB6468b2c8fe2d3814249881eF06926'
 
@@ -93,6 +92,7 @@ function StakeBackground() {
 function StatCard({ label, value, sub, accent = '#10b981', delay = 0 }) {
   const { settings } = useSettings()
   const compact = settings.compactMode
+  const COLORS = useThemeColors()
   
   return (
     <motion.div
@@ -134,6 +134,7 @@ function StatCard({ label, value, sub, accent = '#10b981', delay = 0 }) {
 // ─── Connect Prompt ───────────────────────────────────────────────
 function ConnectPrompt() {
   const { open } = useAppKit()
+  const COLORS = useThemeColors()
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -206,6 +207,7 @@ function ConnectPrompt() {
 export default function StakeActionContent({ onGoToGovernance }) {
   const { address, isConnected } = useAccount()
   const { settings } = useSettings()
+  const COLORS = useThemeColors()
   const compact = settings.compactMode
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     useEffect(() => {
@@ -447,7 +449,7 @@ export default function StakeActionContent({ onGoToGovernance }) {
                             placeholder={`Min. ${minEth} ETH`}
                             style={{
                               width: '100%', padding: '12px 52px 12px 14px',
-                              backgroundColor: '#060d1a',
+                              backgroundColor: COLORS.card,
                               border: `1px solid ${inputValid ? COLORS.cyan + '60' : COLORS.cardBorder}`,
                               borderRadius: '8px', color: COLORS.text,
                               fontSize: '15px', fontFamily: 'monospace',
@@ -479,9 +481,7 @@ export default function StakeActionContent({ onGoToGovernance }) {
                         disabled={!inputValid || staking || stakeConfirming}
                         style={{
                           padding: '13px',
-                          background: inputValid
-                            ? 'linear-gradient(135deg, #10b981, #38bdf8)'
-                            : '#0a1628',
+                          background: inputValid ? 'linear-gradient(135deg, #10b981, #38bdf8)' : COLORS.card,
                           border: inputValid ? 'none' : `1px solid ${COLORS.cardBorder}`,
                           borderRadius: '10px',
                           color: inputValid ? '#ffffff' : COLORS.textMuted,
@@ -530,7 +530,7 @@ export default function StakeActionContent({ onGoToGovernance }) {
                         </p>
                       ) : (
                         <>
-                          <div style={{ padding: isMobile ? '10px' : '14px', backgroundColor: '#060d1a', border: `1px solid ${COLORS.cardBorder}`, borderRadius: '8px' }}>
+                          <div style={{ padding: isMobile ? '10px' : '14px', backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '8px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                               <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>Staked Amount</span>
                               <span style={{ color: COLORS.text, fontSize: '12px', fontFamily: 'monospace' }}>{formatEth(stakedAmount)} ETH</span>

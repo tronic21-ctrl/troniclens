@@ -2,21 +2,8 @@
 // TronicLens — Professional DeFi App Sidebar Navigation
 
 import { motion } from 'framer-motion'
-import { useSettings } from '../context/SettingsContext'
+import { useSettings, useThemeColors } from '../context/SettingsContext'
 
-const COLORS = {
-  bg: '#060d1a',
-  sidebar: '#080f20',
-  sidebarBorder: '#0e2040',
-  active: '#38bdf820',
-  activeBorder: '#38bdf840',
-  cyan: '#38bdf8',
-  cyanDim: '#38bdf815',
-  text: '#e2e8f0',
-  textMuted: '#4a5568',
-  textDim: '#64748b',
-  green: '#10b981',
-}
 
 const navItems = [
   {
@@ -88,6 +75,8 @@ const bottomItems = [
 ]
 
 function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
+  // Theme-aware colors
+  const COLORS = useThemeColors()
   // Baca langsung dari Context — real-time, tidak perlu props
   const { settings } = useSettings()
   const { autoRefresh, refreshInterval, compactMode } = settings
@@ -187,9 +176,8 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
       {/* Live indicator */}
       {!collapsed && (
         <div style={{
-          padding: compactMode ? '7px 16px' : '10px 16px',
-          borderBottom: `1px solid ${COLORS.sidebarBorder}`,
-          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: compactMode ? '8px 16px 10px' : '10px 16px 12px',
+          display: 'flex', alignItems: 'center', gap: '6px',
           transition: 'padding 0.2s',
         }}>
           <motion.div
@@ -202,7 +190,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
               flexShrink: 0,
             }}
           />
-          <span style={{ color: COLORS.textDim, fontSize: '11px', letterSpacing: '0.08em' }}>
+          <span style={{ color: COLORS.textDim, fontSize: '11px', letterSpacing: '0.06em' }}>
             {liveText}
           </span>
         </div>
@@ -223,7 +211,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
           return (
             <motion.button
               key={item.id}
-              whileHover={{ backgroundColor: isActive ? COLORS.active : '#0e2040' }}
+              whileHover={{ backgroundColor: isActive ? COLORS.active : COLORS.sidebarBorder }}
               whileTap={{ scale: 0.98 }}
               onClick={() => !item.soon && onItemClick(item.id)}
               style={{
@@ -279,12 +267,12 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
             margin: compactMode ? '0 4px 4px' : '0 4px 8px',
             padding: compactMode ? '6px 12px' : '8px 12px',
             borderRadius: '8px',
-            backgroundColor: '#38bdf810',
-            border: '1px solid #38bdf820',
+            backgroundColor: COLORS.cyanDim,
+            border: `1px solid ${COLORS.cyan}30`,
             display: 'flex', alignItems: 'center', gap: '8px',
             transition: 'padding 0.2s, margin 0.2s',
           }}>
-            <img src="/logos/ETHGlobal_Logomark_White.svg" alt="ETHGlobal" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+            <img src="/logos/ETHGlobal_Logomark_White.svg" alt="ETHGlobal" style={{ width: '16px', height: '16px', objectFit: 'contain', filter: settings.theme === 'light' ? 'invert(1)' : 'none' }} />
             <div style={{ lineHeight: 1.2 }}>
               <p style={{ color: COLORS.cyan, fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0' }}>
                   ETHOnline 2026
@@ -302,7 +290,7 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
           return (
             <motion.button
               key={item.id}
-              whileHover={{ backgroundColor: isActive ? COLORS.active : '#0e2040' }}
+              whileHover={{ backgroundColor: isActive ? COLORS.active : COLORS.sidebarBorder }}
               whileTap={{ scale: 0.98 }}
               onClick={() => !item.soon && onItemClick(item.id)}
               style={{

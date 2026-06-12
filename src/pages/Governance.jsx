@@ -6,8 +6,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { useAppKit } from '@reown/appkit/react'
-import { COLORS } from '../utils/colors'
-import { useSettings } from '../context/SettingsContext'
+import { useSettings, useThemeColors } from '../context/SettingsContext'
 
 // ─── Contract Config ──────────────────────────────────────────────
 
@@ -135,15 +134,15 @@ function useCountdown(targetTimestamp, onComplete) {
   return timeLeft
 }
 
-function getStatusColor(status) {
+function getStatusColor(status, colors) {
   switch (status) {
-    case 'Active': return COLORS.cyan
-    case 'Passed': return COLORS.green
+    case 'Active': return colors.cyan
+    case 'Passed': return colors.green
     case 'Executable': return '#a78bfa'
-    case 'Executed': return COLORS.green
-    case 'Defeated': return COLORS.red
-    case 'Canceled': return COLORS.amber
-    default: return COLORS.textDim
+    case 'Executed': return colors.green
+    case 'Defeated': return colors.red
+    case 'Canceled': return colors.amber
+    default: return colors.textDim
   }
 }
 
@@ -196,6 +195,7 @@ function GovBackground() {
 // ─── Animated Stat Card ───────────────────────────────────────────
 
 function StatCard({ label, value, sub, delay = 0, compact = false }) {
+  const COLORS = useThemeColors()
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -240,7 +240,9 @@ function StatCard({ label, value, sub, delay = 0, compact = false }) {
 
 // ─── Shared Components ────────────────────────────────────────────
 
-function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
+function PageHeader({ title, subtitle, badge, badgeColor }) {
+  const COLORS = useThemeColors()
+  const resolvedColor = badgeColor ?? COLORS.cyan
   const { settings } = useSettings()
   const compact = settings.compactMode
   const isLive = badge && (
@@ -263,13 +265,13 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
           fontSize: '10px',
           fontWeight: 700,
           letterSpacing: '0.08em',
-          color: badgeColor,
+          color: resolvedColor,
           textTransform: 'uppercase',
-          border: `1px solid ${badgeColor}35`,
+          border: `1px solid ${resolvedColor}35`,
           padding: '3px 12px',
           borderRadius: '50px',
-          background: `linear-gradient(135deg, ${badgeColor}1a, ${badgeColor}05)`,
-          boxShadow: `0 0 12px ${badgeColor}10`,
+          background: `linear-gradient(135deg, ${resolvedColor}1a, ${resolvedColor}05)`,
+          boxShadow: `0 0 12px ${resolvedColor}10`,
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
           marginBottom: compact ? '6px' : '10px',
@@ -282,8 +284,8 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                backgroundColor: badgeColor,
-                boxShadow: `0 0 8px ${badgeColor}`,
+                backgroundColor: resolvedColor,
+                boxShadow: `0 0 8px ${resolvedColor}`,
                 display: 'inline-block',
                 flexShrink: 0,
               }}
@@ -309,6 +311,7 @@ function PageHeader({ title, subtitle, badge, badgeColor = COLORS.cyan }) {
 // ─── Connect Prompt ───────────────────────────────────────────────
 
 function ConnectPrompt() {
+  const COLORS = useThemeColors()
   const { open } = useAppKit()
   return (
     <motion.div
@@ -419,6 +422,7 @@ function ConnectPrompt() {
 // ─── Eligibility Card ─────────────────────────────────────────────
 
 function EligibilityCard({ address, onGoToStake }) {
+  const COLORS = useThemeColors()
   const { data, isLoading } = useReadContract({
     address: STAKING_GOVERNANCE_ADDRESS,
     abi: STAKING_GOVERNANCE_ABI,
@@ -548,6 +552,7 @@ function EligibilityCard({ address, onGoToStake }) {
 // ─── Create Proposal Form ─────────────────────────────────────────
 
 function CreateProposalForm({ eligible, onSuccess }) {
+  const COLORS = useThemeColors()
   const [description, setDescription] = useState('')
   const [expanded, setExpanded] = useState(false)
   const { writeContract, data: hash, isPending, error } = useWriteContract()
@@ -631,7 +636,7 @@ function CreateProposalForm({ eligible, onSuccess }) {
                 rows={4}
                 style={{
                   width: '100%', padding: '12px',
-                  backgroundColor: '#060d1a',
+                  backgroundColor: COLORS.inputBg,
                   border: `1px solid ${COLORS.cardBorder}`,
                   borderRadius: '8px', color: COLORS.text,
                   fontSize: '13px', fontFamily: 'inherit',
@@ -650,7 +655,7 @@ function CreateProposalForm({ eligible, onSuccess }) {
                   disabled={!description.trim() || isPending || isConfirming}
                   style={{
                     padding: '10px 24px',
-                    backgroundColor: description.trim() ? `${COLORS.cyan}20` : '#0a1628',
+                    backgroundColor: description.trim() ? `${COLORS.cyan}20` : COLORS.card,
                     border: `1px solid ${description.trim() ? COLORS.cyan + '60' : COLORS.cardBorder}`,
                     borderRadius: '8px',
                     color: description.trim() ? COLORS.cyan : COLORS.textMuted,
@@ -682,6 +687,7 @@ function CreateProposalForm({ eligible, onSuccess }) {
 // ─── Proposal Card ────────────────────────────────────────────────
 
 function ProposalCard({ proposalId, address, eligible, delay = 0 }) {
+  const COLORS = useThemeColors()
   const { data: info, refetch: refetchInfo } = useReadContract({
     address: STAKING_GOVERNANCE_ADDRESS,
     abi: STAKING_GOVERNANCE_ABI,
@@ -731,7 +737,7 @@ function ProposalCard({ proposalId, address, eligible, delay = 0 }) {
 
   const [id, proposer, description, yesVotes, noVotes, deadline, timelockEnd, executed, canceled] = info
   const status = statusData || 'Loading...'
-  const statusColor = getStatusColor(status)
+  const statusColor = getStatusColor(status, COLORS)
   const hasVoted = voteInfo?.[0]
   const myVote = voteInfo?.[1]
 
@@ -984,6 +990,7 @@ function ProposalCard({ proposalId, address, eligible, delay = 0 }) {
 // ─── Proposals List ───────────────────────────────────────────────
 
 function ProposalsList({ address, eligible, refreshTrigger }) {
+  const COLORS = useThemeColors()
   const { data: totalData, refetch } = useReadContract({
     address: STAKING_GOVERNANCE_ADDRESS,
     abi: STAKING_GOVERNANCE_ABI,
@@ -1036,6 +1043,7 @@ function ProposalsList({ address, eligible, refreshTrigger }) {
 export default function GovernanceContent({ onItemClick }) {
   const { address, isConnected } = useAccount()
   const { settings } = useSettings()
+  const COLORS = useThemeColors()
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const { data: eligibilityData } = useReadContract({

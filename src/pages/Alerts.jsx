@@ -5,8 +5,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useWhaleActivity } from '../hooks/useWhaleActivity'
-import { useSettings } from '../context/SettingsContext'
-import { COLORS } from '../utils/colors'
+import { useSettings, useThemeColors } from '../context/SettingsContext'
 
 // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -58,6 +57,7 @@ async function fetchAICommentary(alert, ethPrice) {
 // ─── Alert Card ───────────────────────────────────────────────────
 
 function AlertCard({ alert, ethPrice, index }) {
+  const COLORS = useThemeColors()
   const [aiComment, setAiComment] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -96,7 +96,7 @@ function AlertCard({ alert, ethPrice, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07 }}
       style={{
-        backgroundColor: '#060d1a',
+        backgroundColor: COLORS.card,
         border: `1px solid ${COLORS.cardBorder}`,
         borderLeft: `3px solid ${accentColor}`,
         borderRadius: '10px',
@@ -272,7 +272,8 @@ function AlertCard({ alert, ethPrice, index }) {
 
 export default function AlertsContent() {
   const { settings } = useSettings()
-
+  const COLORS = useThemeColors() 
+  const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   
   useEffect(() => {
@@ -392,7 +393,7 @@ export default function AlertsContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           style={{
-            backgroundColor: '#060d1a',
+            backgroundColor: COLORS.bg,
             border: `1px solid ${COLORS.cardBorder}`,
             borderRadius: '12px',
             overflow: 'hidden',
@@ -402,7 +403,7 @@ export default function AlertsContent() {
           <div style={{
             padding: '10px 16px',
             borderBottom: `1px solid ${COLORS.cardBorder}`,
-            backgroundColor: '#040a14',
+            backgroundColor: COLORS.chartHeader,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <span style={{ color: COLORS.textDim, fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -484,13 +485,13 @@ export default function AlertsContent() {
           style={{ color: COLORS.textMuted, fontSize: '12px', textAlign: 'center', marginTop: '32px' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: whiteLogo }} />
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>The Graph</span>
             <span style={{ color: COLORS.textMuted }}>·</span>
-            <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: whiteLogo }} />
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>Chainlink</span>
             <span style={{ color: COLORS.textMuted }}>·</span>
-            <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+            <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '14px', height: '14px', objectFit: 'contain', filter: whiteLogo }} />
             <span style={{ color: COLORS.textMuted, fontSize: '12px' }}>0G Compute (Qwen2.5-7b)</span>
           </div>
         </motion.p>

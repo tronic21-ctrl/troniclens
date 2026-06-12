@@ -62,7 +62,11 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: #060d1a;   /* tambahkan ini biar konsisten */
+  transition: background-color 0.35s ease;
+}
+
+html, body {
+  transition: background-color 0.35s ease;
 }
 
 h1,
