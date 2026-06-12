@@ -127,9 +127,10 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
       }}>
         {!collapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img 
-              src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'} 
-              style={{ filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }} 
+            <img
+              src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'}
+              alt="TronicLens"
+              style={{ width: '32px', height: '32px', objectFit: 'contain', flexShrink: 0, filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }}
             />
             <span style={{
               fontSize: compactMode ? '13px' : '15px',
@@ -144,9 +145,10 @@ function Sidebar({ activeItem, onItemClick, collapsed, onCollapse }) {
         )}
 
         {collapsed && (
-          <img 
-            src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'} 
-            style={{ filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }} 
+          <img
+            src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'}
+            alt="TronicLens"
+            style={{ width: '28px', height: '28px', objectFit: 'contain', filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }}
           />
         )}
 
