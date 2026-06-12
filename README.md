@@ -109,6 +109,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - Minimum stake: 0.001 ETH · Reward rate: 500 wei/second · Sepolia Testnet
 
 ### Settings
+- **Theme Toggle** — switch dark/light mode, persists via localStorage
 - **Auto Refresh** toggle — live data from The Graph
 - **Refresh Interval** selector — 15s / 30s / 60s
 - **Whale Threshold** filter — 0.05 / 0.1 / 0.5 ETH
@@ -118,6 +119,19 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - All settings persist via `localStorage`, sync globally via React Context
 
 ---
+
+## What's New
+
+### v1.6 — June 2026
+- **Dual Theme System** — dark/light toggle via Settings > Appearance, persists to localStorage
+- **useThemeColors() hook** — reactive color system, all components switch theme instantly
+- **DARK_COLORS + LIGHT_COLORS palettes** — complete dual palette in colors.js with accent color adjustments for light mode
+- **White logo fix** — filter: invert() applied to all white logos (0G, The Graph, Chainlink, ETHGlobal) in light mode
+- **CandlestickChart ResizeObserver** — more reliable chart initialization, no longer stuck on first render
+- **Chart stale data fix** — clear state before fetching on timeframe switch
+- **Sidebar live indicator redesign** — removed top/bottom borders, cleaner typography
+- **Badge consistency** — all badges use borderRadius: 50px (pill style)
+- **Version bump** — v1.6.0
 
 ### v1.5 — June 2026
 - **ETH/USD Price Chart fullscreen mode** — expand chart to fullscreen, mobile-friendly with landscape support
@@ -129,8 +143,6 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 - **WhaleTable redesign** — darker background feel tabel transaksi, tidak ada shimmer accent line
 - **Staker Distribution** — header section dengan darker background konsisten
 - **Version bump** — v1.5.0
-
-## What's New
 
 ### v1.4 — June 2026
 - **Staking page** — full stake/unstake UI directly from dashboard (no need for Remix/Blockscout)
@@ -175,7 +187,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ```
 Frontend:       React + Vite + Framer Motion
-State:          React Context (SettingsContext)
+State:          React Context (SettingsContext + useThemeColors hook)
 Smart Contract: Solidity ^0.8.0 + OpenZeppelin v5.6.1
 Indexing:       The Graph (subgraph: tronic-staking v0.0.3)
 Price Feed:     Chainlink ETH/USD (Sepolia)
@@ -221,7 +233,7 @@ troniclens/
 │   │   ├── Governance.jsx
 │   │   └── StakeAction.jsx
 │   └── utils/
-│       ├── colors.js          # Shared COLORS design tokens
+│       └── colors.js          # DARK_COLORS + LIGHT_COLORS dual theme palettes
 │       └── mockData.js
 ├── upload-snapshot.mjs
 ├── ai-insights.mjs

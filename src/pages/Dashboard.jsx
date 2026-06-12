@@ -793,7 +793,10 @@ function AboutContent() {
           style={{ backgroundColor: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, borderRadius: '16px', padding: '24px' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-            <img src="/logos/troniclens-logo-transparent.svg" alt="TronicLens" style={{ width: '40px', height: '40px' }} />
+            <img 
+              src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'} 
+              style={{ filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }} 
+            />
             <div>
               <p style={{ color: COLORS.text, fontSize: '18px', fontWeight: 700 }}>TronicLens</p>
               <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>On-chain intelligence for stakers</p>
@@ -1314,10 +1317,9 @@ function OverviewContent() {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '4px' }}>
-            <img
-              src="/logos/troniclens-logo-transparent.svg"
-              alt="TronicLens"
-              style={{ width: '48px', height: '48px', filter: 'drop-shadow(0 0 8px #38bdf860)' }}
+            <img 
+              src={settings.theme === 'light' ? '/logos/troniclens-logo-dark.svg' : '/logos/troniclens-logo-transparent.svg'} 
+              style={{ filter: settings.theme === 'light' ? 'none' : 'drop-shadow(0 0 6px #38bdf860)' }} 
             />
             <h1 style={{
               fontSize: '30px', fontWeight: 800,
