@@ -25,6 +25,13 @@ function shortAddr(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
+function getSeverity(alert) {
+  if (alert.type === 'price') return null
+  if (alert.amountEth >= 0.5) return { label: 'HIGH', color: '#f43f5e' }
+  if (alert.amountEth >= 0.1) return { label: 'MED', color: '#f59e0b' }
+  return { label: 'LOW', color: '#10b981' }
+}
+
 // ─── 0G AI Commentary ─────────────────────────────────────────────
 
 async function fetchAICommentary(alert, ethPrice) {
@@ -56,7 +63,7 @@ async function fetchAICommentary(alert, ethPrice) {
 
 // ─── Alert Card ───────────────────────────────────────────────────
 
-function AlertCard({ alert, ethPrice, index }) {
+function AlertCard({ alert, ethPrice, index, priceChange24h }) {
   const COLORS = useThemeColors()
   const [aiComment, setAiComment] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
@@ -143,7 +150,16 @@ function AlertCard({ alert, ethPrice, index }) {
                   ${alert.amountUSD}
                 </p>
               )}
-              <p style={{ color: COLORS.textMuted, fontSize: '12px' }}>
+              {isPrice && priceChange24h !== null && (
+                <p style={{
+                  fontSize: '12px', fontWeight: 600,
+                  color: parseFloat(priceChange24h) >= 0 ? COLORS.green : COLORS.red,
+                  marginBottom: '2px',
+                }}>
+                  {parseFloat(priceChange24h) >= 0 ? '▲' : '▼'} {Math.abs(priceChange24h)}% (24h)
+                </p>
+              )}
+              <p style={{ color: COLORS.textMuted, fontSize: '12px', marginBottom: getSeverity(alert) ? '6px' : '0' }}>
                 {isPrice ? 'Chainlink · ETH/USD'
                   : (
                     <span
@@ -155,6 +171,15 @@ function AlertCard({ alert, ethPrice, index }) {
                   )
                 }
               </p>
+              {getSeverity(alert) && (
+                <span style={{
+                  fontSize: '10px', fontWeight: 600,
+                  color: getSeverity(alert).color,
+                  letterSpacing: '0.05em',
+                }}>
+                  {getSeverity(alert).label === 'MED' ? 'MEDIUM' : getSeverity(alert).label} SEVERITY
+                </span>
+              )}
             </div>
           </div>
 
@@ -295,6 +320,67 @@ export default function AlertsContent() {
     whaleThreshold: settings.whaleThreshold,
   })
 
+  const ethPrice = stats?.ethPrice
+  const [priceChange24h, setPriceChange24h] = useState(null)
+  const [globalAI, setGlobalAI] = useState(null)
+  const [globalAILoading, setGlobalAILoading] = useState(false)
+  const [globalAIExpanded, setGlobalAIExpanded] = useState(false)
+  const globalFetchedRef = useRef(false)
+
+  const handleAnalyzeAll = async () => {
+    if (globalFetchedRef.current) {
+      setGlobalAIExpanded(e => !e)
+      return
+    }
+    setGlobalAIExpanded(true)
+    setGlobalAILoading(true)
+    globalFetchedRef.current = true
+
+    const alertSummary = alerts.map(a =>
+      a.type === 'price'
+        ? `ETH/USD Price: $${a.amountUSD}${priceChange24h ? ` (24h change: ${priceChange24h}%)` : ''}`
+        : `${a.action}: ${a.amountEth.toFixed(4)} ETH ($${a.amountUSD}) by ${shortAddr(a.address)}`
+    ).join('\n')
+
+    const prompt = `You are a DeFi analyst for TronicLens, an on-chain staking intelligence dashboard.
+
+    Current alerts detected on Ethereum Sepolia:
+    ${alertSummary}
+
+    ETH Price: $${ethPrice || 'unknown'}
+    Active Stakers: ${stats?.activeStakers || 'unknown'}
+    Total TVL: ${stats?.totalStaked || 'unknown'} ETH
+
+    In 3-4 sentences, provide a comprehensive analysis of the current protocol state based on ALL these alerts combined. What is the overall market sentiment? What should stakers be aware of right now? Be specific and data-driven.`
+
+    try {
+      const res = await fetch('/api/ai-commentary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      })
+      const data = await res.json()
+      setGlobalAI(data?.choices?.[0]?.message?.content || 'Analysis unavailable.')
+    } catch {
+      setGlobalAI('0G Compute unavailable. Please try again.')
+    }
+    setGlobalAILoading(false)
+  }
+
+  useEffect(() => {
+    fetch('/api/price-history?days=1')
+      .then(r => r.json())
+      .then(data => {
+        if (data.prices && data.prices.length >= 2) {
+          const first = data.prices[0][1]
+          const last = data.prices[data.prices.length - 1][1]
+          const change = ((last - first) / first) * 100
+          setPriceChange24h(change.toFixed(2))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   // Build alert list dari whale activities + chainlink price
   const alerts = []
 
@@ -327,8 +413,6 @@ export default function AlertsContent() {
         : chainlinkPrice.updatedAt,
     })
   }
-
-  const ethPrice = stats?.ethPrice
 
   return (
     <div>
@@ -444,6 +528,96 @@ export default function AlertsContent() {
         </motion.div>
       )}
 
+      {!loading && !error && alerts.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          style={{
+            marginBottom: '20px',
+            border: `1px solid ${COLORS.purple}30`,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            backgroundColor: COLORS.card,
+          }}
+        >
+          <button
+            onClick={handleAnalyzeAll}
+            style={{
+              width: '100%', padding: '14px 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: globalAIExpanded
+                ? `linear-gradient(135deg, ${COLORS.purple}20, ${COLORS.purple}08)`
+                : `linear-gradient(135deg, ${COLORS.purple}12, ${COLORS.purple}04)`,
+              border: 'none', cursor: 'pointer',
+              borderBottom: globalAIExpanded ? `1px solid ${COLORS.purple}25` : 'none',
+              transition: 'background 0.2s',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <img
+                src="/logos/0G-Logo-White.svg"
+                alt="0G"
+                style={{
+                  width: '16px', height: '16px', objectFit: 'contain',
+                  filter: 'brightness(0) saturate(100%) invert(58%) sepia(60%) saturate(400%) hue-rotate(200deg) brightness(110%)',
+                }}
+              />
+              <span style={{ color: COLORS.purple, fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Analyze All Alerts
+              </span>
+              <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+                · {alerts.length} alerts · 0G Compute
+              </span>
+            </div>
+            <motion.span
+              animate={{ rotate: globalAIExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ color: COLORS.purple, fontSize: '12px' }}
+            >
+              ▼
+            </motion.span>
+          </button>
+
+          <AnimatePresence>
+            {globalAIExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                style={{ overflow: 'hidden' }}
+              >
+                <div style={{ padding: '16px 20px' }}>
+                  {globalAILoading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        style={{ width: '16px', height: '16px', border: `2px solid ${COLORS.purple}`, borderTopColor: 'transparent', borderRadius: '50%', flexShrink: 0 }}
+                      />
+                      <span style={{ color: COLORS.purple, fontSize: '13px' }}>Analyzing all alerts via 0G Compute...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p style={{ color: COLORS.textDim, fontSize: '13px', lineHeight: 1.8, marginBottom: '10px' }}>
+                        {globalAI}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <img src="/logos/0G-Logo-White.svg" alt="0G" style={{ width: '12px', height: '12px', objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(58%) sepia(60%) saturate(400%) hue-rotate(200deg) brightness(110%)' }} />
+                        <span style={{ color: COLORS.textMuted, fontSize: '11px' }}>
+                          Powered by <span style={{ color: COLORS.purple }}>0G Compute</span> · Qwen2.5-omni-7b · {alerts.length} alerts analyzed
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       {/* Alert list */}
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -471,7 +645,7 @@ export default function AlertsContent() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {alerts.map((alert, i) => (
-            <AlertCard key={alert.id} alert={alert} ethPrice={ethPrice} index={i} />
+            <AlertCard key={alert.id} alert={alert} ethPrice={ethPrice} index={i} priceChange24h={alert.type === 'price' ? priceChange24h : null} />
           ))}
         </div>
       )}

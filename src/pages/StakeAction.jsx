@@ -28,6 +28,7 @@ const STAKING_ABI = [
   },
   { name: 'MIN_STAKE_AMOUNT', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
   { name: 'minimumStakePeriod', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'rewardRatePerSecond', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
 ]
 
 function formatEth(wei) {
@@ -233,6 +234,12 @@ export default function StakeActionContent({ onGoToGovernance }) {
     address: STAKING_ADDRESS, abi: STAKING_ABI,
     functionName: 'MIN_STAKE_AMOUNT',
   })
+  const { data: liveRate } = useReadContract({
+    address: STAKING_ADDRESS,
+    abi: STAKING_ABI,
+    functionName: 'rewardRatePerSecond',
+  })
+  const ratePerSec = liveRate ? Number(liveRate) / 1e18 : 500 / 1e18
   const { data: minPeriod } = useReadContract({
     address: STAKING_ADDRESS, abi: STAKING_ABI,
     functionName: 'minimumStakePeriod',
@@ -474,6 +481,90 @@ export default function StakeActionContent({ onGoToGovernance }) {
                         )}
                       </div>
 
+                      {/* Reward Preview — muncul otomatis kalau input valid */}
+                      {inputValid && (() => {
+                        const ethAmount = parseFloat(stakeInput)
+                        const perHour  = ratePerSec * 3600
+                        const perDay   = ratePerSec * 86400
+                        const perWeek  = ratePerSec * 604800
+                        const perMonth = ratePerSec * 2592000
+                        const perYear  = ratePerSec * 31536000
+                        const apy      = (perYear / ethAmount) * 100
+
+                        const fmtReward = (ethVal) => {
+                          const wei = ethVal * 1e18
+                          if (wei < 1000) return `${wei.toFixed(2)} wei`
+                          if (wei < 1e6)  return `${(wei / 1e3).toFixed(4)} Kwei`
+                          if (wei < 1e9)  return `${(wei / 1e6).toFixed(4)} Mwei`
+                          if (wei < 1e12) return `${(wei / 1e9).toFixed(4)} Gwei`
+                          return `${ethVal.toFixed(10)} ETH`
+                        }
+
+                        return (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.25 }}
+                            style={{
+                              backgroundColor: COLORS.chartHeader,
+                              border: `1px solid ${COLORS.cardBorder}`,
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {/* Header reward preview */}
+                            <div style={{
+                              padding: '8px 14px',
+                              borderBottom: `1px solid ${COLORS.cardBorder}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
+                              <span style={{ color: COLORS.textDim, fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                                Estimated Rewards
+                              </span>
+                              <span style={{ color: COLORS.textMuted, fontSize: '9px' }}>500 wei/s · flat rate</span>
+                            </div>
+
+                            {/* Rows */}
+                            <div style={{ padding: '4px 8px' }}>
+                              {[
+                                { label: '1 Hour',  val: perHour },
+                                { label: '1 Day',   val: perDay },
+                                { label: '1 Week',  val: perWeek },
+                                { label: '1 Month', val: perMonth },
+                                { label: '1 Year',  val: perYear },
+                              ].map((row, i) => (
+                                <div key={i} style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '6px 6px',
+                                  borderBottom: i < 4 ? `1px solid ${COLORS.cardBorder}` : 'none',
+                                }}>
+                                  <span style={{ color: COLORS.textDim, fontSize: '11px' }}>{row.label}</span>
+                                  <span style={{ color: COLORS.green, fontSize: '11px', fontWeight: 700, fontFamily: 'monospace' }}>
+                                    +{fmtReward(row.val)}
+                                  </span>
+                                </div>
+                              ))}
+                              {/* APY row */}
+                              <div style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '8px 6px', marginTop: '2px',
+                                borderTop: `1px solid ${COLORS.green}20`,
+                                backgroundColor: `${COLORS.green}08`,
+                                borderRadius: '0 0 6px 6px',
+                              }}>
+                                <span style={{ color: COLORS.textDim, fontSize: '11px', fontWeight: 600 }}>
+                                  {fmtReward(perYear)}/year
+                                </span>
+                                <span style={{ color: COLORS.textMuted, fontSize: '10px', fontFamily: 'monospace' }}>
+                                  APY: {apy.toExponential(2)}%
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )
+                      })()}
+
                       <motion.button
                         whileHover={{ scale: inputValid ? 1.03 : 1, boxShadow: inputValid ? '0 0 24px #10b98135' : 'none' }}
                         whileTap={{ scale: inputValid ? 0.97 : 1 }}
@@ -602,6 +693,7 @@ export default function StakeActionContent({ onGoToGovernance }) {
                 Stake any amount above the minimum to start earning rewards automatically. Your staked ETH also grants you voting power in Governance — the more you stake, the more weight your vote carries. Unstaking returns your full principal plus accrued rewards.
               </p>
             </motion.div>
+
           </>
         )}
       </div>
