@@ -223,6 +223,11 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const [priceChange, setPriceChange] = useState({ value: 0, pct: 0, positive: true })
+  const [coin, setCoin] = useState('ETH') // 'ETH' | 'BTC'
+  const [btcPriceData, setBtcPriceData] = useState([])
+  const [btcVolumeData, setBtcVolumeData] = useState([])
+  const [btcOhlcData, setBtcOhlcData] = useState([])
+  const [btcPriceChange, setBtcPriceChange] = useState({ value: 0, pct: 0, positive: true })
 
   // Fetch price + volume + ohlc
   const fetchPriceData = useCallback(async (r) => {
@@ -327,6 +332,78 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
     }
   }, [])
 
+    const fetchBTCData = useCallback(async (r) => {
+    setLoading(true)
+    setError(null)
+    setBtcPriceData([])
+    setBtcVolumeData([])
+    setBtcOhlcData([])
+    try {
+      const days = TIME_RANGES.find(x => x.label === r)?.days || '1'
+      const isDev = import.meta.env.DEV
+
+      if (isDev) {
+        const cacheKey = `btc-price-${days}`
+        if (devCache[cacheKey]) {
+          const cached = devCache[cacheKey]
+          setBtcPriceData(cached.prices)
+          setBtcVolumeData(cached.volumes)
+          setBtcOhlcData(cached.ohlc)
+          setBtcPriceChange(cached.priceChange)
+          setLoading(false)
+          return
+        }
+        const [priceRes, ohlcRes] = await Promise.all([
+          fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`),
+          fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${days === '0.04' ? '1' : days}`),
+        ])
+        if (!priceRes.ok) {
+          const retryAfter = parseInt(priceRes.headers.get('Retry-After') || '60')
+          const err = new Error('Rate limit reached')
+          err.retryAfter = retryAfter
+          throw err
+        }
+        const priceJson = await priceRes.json()
+        const ohlcJson = ohlcRes.ok ? await ohlcRes.json() : []
+        const filteredOhlc = days === '0.04' ? ohlcJson.filter(([ts]) => ts >= Date.now() - 60 * 60 * 1000) : ohlcJson
+        const prices = priceJson.prices.map(([ts, p]) => ({ time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts }))
+        const volumes = priceJson.total_volumes.map(([ts, v]) => ({ time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts }))
+        const first = prices[0]?.price
+        const last = prices[prices.length - 1]?.price
+        const change = last - first
+        const pc = { value: Math.abs(change).toFixed(2), pct: Math.abs((change / first) * 100).toFixed(2), positive: change >= 0 }
+        devCache[cacheKey] = { prices, volumes, ohlc: filteredOhlc, priceChange: pc }
+        setBtcPriceData(prices)
+        setBtcVolumeData(volumes)
+        setBtcOhlcData(filteredOhlc)
+        setBtcPriceChange(pc)
+      } else {
+        const res = await fetch(`/api/price-history?days=${days}&coin=bitcoin`)
+        const data = await res.json()
+        const prices = data.prices.map(([ts, p]) => ({ time: fmtTime(ts, days), price: parseFloat(p.toFixed(2)), timestamp: ts }))
+        const volumes = (data.volumes || []).map(([ts, v]) => ({ time: fmtTime(ts, days), volume: parseFloat(v.toFixed(0)), timestamp: ts }))
+        setBtcPriceData(prices)
+        setBtcVolumeData(volumes)
+        setBtcOhlcData(data.ohlc || [])
+        const first = prices[0]?.price
+        const last = prices[prices.length - 1]?.price
+        const change = last - first
+        setBtcPriceChange({ value: Math.abs(change).toFixed(2), pct: Math.abs((change / first) * 100).toFixed(2), positive: change >= 0 })
+      }
+    } catch (err) {
+      setError(err.message)
+      const retryAfter = err.retryAfter || 60
+      if (globalRetryTimer.retryAt <= Date.now()) {
+        globalRetryTimer.retryAt = Date.now() + retryAfter * 1000
+        setRetryIn(retryAfter)
+      } else {
+        setRetryIn(Math.ceil((globalRetryTimer.retryAt - Date.now()) / 1000))
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   // Fetch TVL
   const fetchTVL = useCallback(async () => {
     try {
@@ -373,7 +450,17 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
     return () => clearInterval(timer)
   }, [retryIn])
 
-  useEffect(() => { fetchPriceData(range) }, [range, fetchPriceData])
+  useEffect(() => {
+    if (coin === 'ETH') {
+      fetchPriceData(range)
+    }
+  }, [range, fetchPriceData])
+
+  useEffect(() => {
+    if (coin === 'BTC') {
+      fetchBTCData(range)
+    }
+  }, [range, coin, fetchBTCData])
   useEffect(() => { if (tab === 'TVL') fetchTVL() }, [tab, fetchTVL])
 
   // Scroll block for fullscreen mode
@@ -390,6 +477,14 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
   const currentPrice = priceData[priceData.length - 1]?.price
     || (chainlinkPrice?.price ? parseFloat(String(chainlinkPrice.price).replace(/,/g, '')) : null)
   const isPositive = priceChange.positive
+  const activePriceData = coin === 'ETH' ? priceData : btcPriceData
+  const activeVolumeData = coin === 'ETH' ? volumeData : btcVolumeData
+  const activeOhlcData = coin === 'ETH' ? ohlcData : btcOhlcData
+  const activePriceChange = coin === 'ETH' ? priceChange : btcPriceChange
+  const activeIsPositive = activePriceChange.positive
+  const activeLineColor = activeIsPositive ? C.green : C.red
+  const activeCurrentPrice = activePriceData[activePriceData.length - 1]?.price
+    || (coin === 'ETH' && chainlinkPrice?.price ? parseFloat(String(chainlinkPrice.price).replace(/,/g, '')) : null)
   const lineColor = isPositive ? C.green : C.red
 
   return (
@@ -426,27 +521,39 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         {/* Row 1: Token + Price + Change */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <img
-                  src="/logos/eth-diamond-(color-filled).svg"
-                  alt="ETH"
-                  style={{ width: '24px', height: '24px', objectFit: 'contain' }}
-                />
-              <span style={{ color: C.text, fontSize: '14px', fontWeight: 700 }}>ETH / USD</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', gap: '2px', background: C.inputBg, borderRadius: '8px', padding: '3px' }}>
+                {['ETH', 'BTC'].map(c => (
+                  <button key={c} onClick={() => setCoin(c)} style={{
+                    padding: isMobile ? '4px 8px' : '3px 12px',
+                    borderRadius: '6px', border: 'none',
+                    background: coin === c ? C.card : 'none',
+                    color: coin === c ? C.cyan : C.dim,
+                    fontSize: '12px', fontWeight: coin === c ? 700 : 400, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                  }}>
+                    <img
+                      src={c === 'ETH' ? '/logos/eth-circle-white.svg' : '/logos/bitcoin-logo.svg'}
+                      alt={c}
+                      style={{ width: '14px', height: '14px', objectFit: 'contain' }}
+                    />
+                    {isMobile ? c : `${c} / USD`}
+                  </button>
+                ))}
+              </div>
               <span style={{
                 fontSize: '10px', fontWeight: 600, color: C.cyan,
                 border: `1px solid ${C.cyan}35`, background: `linear-gradient(135deg, ${C.cyan}1a, ${C.cyan}05)`,
-                padding: '2px 10px', borderRadius: '50px',
-                letterSpacing: '0.05em',
+                padding: '2px 10px', borderRadius: '50px', letterSpacing: '0.05em',
               }}>COINGECKO</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
               <span style={{ color: C.text, fontSize: '26px', fontWeight: 800, fontFamily: 'monospace', letterSpacing: '-0.02em' }}>
-                {currentPrice ? fmt$(currentPrice) : '—'}
+                {activeCurrentPrice ? fmt$(activeCurrentPrice) : '—'}
               </span>
               {!loading && tab === 'Price' && (
-                <span style={{ fontSize: '13px', fontWeight: 600, color: isPositive ? C.green : C.red }}>
-                  {isPositive ? '+' : '-'}${priceChange.value} ({isPositive ? '+' : '-'}{priceChange.pct}%)
+                <span style={{ fontSize: '13px', fontWeight: 600, color: activeIsPositive ? C.green : C.red }}>
+                  {activeIsPositive ? '+' : '-'}${activePriceChange.value} ({activeIsPositive ? '+' : '-'}{activePriceChange.pct}%)
                 </span>
               )}
             </div>
@@ -510,7 +617,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           {/* Tabs */}
           <div style={{ display: 'flex', gap: '2px', background: C.inputBg, borderRadius: '8px', padding: '3px' }}>
-            {TABS.map(t => (
+            {TABS.filter(t => !(coin === 'BTC' && t === 'TVL')).map(t => (
               <button key={t} onClick={() => setTab(t)} style={{
                 padding: '4px 12px', borderRadius: '6px',
                 border: 'none',
@@ -548,12 +655,12 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
       {/* ── CHART AREA ── */}
        <div style={{ padding: '8px 0 0', height: '240px', position: 'relative' }}>
-        {loading && tab !== 'TVL' && priceData.length === 0 ? (
+        {loading && tab !== 'TVL' && activePriceData.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
               style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
           </div>
-          ) : error && tab !== 'TVL' && priceData.length === 0 ? (
+          ) : error && tab !== 'TVL' && activePriceData.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={C.amber} strokeWidth="1.5" strokeLinecap="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -589,27 +696,27 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             </div>
         ) : tab === 'Price' && chartType === 'candle' ? (
           <div style={{ padding: '0 8px' }}>
-            <CandlestickChart ohlcData={ohlcData} isPositive={isPositive} />
+            <CandlestickChart ohlcData={activeOhlcData} isPositive={activeIsPositive} />
           </div>
         ) : tab === 'Price' ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={priceData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <AreaChart data={activePriceData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={lineColor} stopOpacity={0.25} />
-                  <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
+                  <stop offset="0%" stopColor={activeLineColor} stopOpacity={0.25} />
+                  <stop offset="100%" stopColor={activeLineColor} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={C.chartGrid} vertical={false} />
               <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
               <YAxis domain={['auto', 'auto']} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => '$' + v.toLocaleString()} width={72} />
               <Tooltip content={<ChartTooltip tab="Price" range={range} />} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }} />
-              <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#priceGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
+              <Area type="monotone" dataKey="price" stroke={activeLineColor} strokeWidth={2} fill="url(#priceGrad)" dot={false} activeDot={{ r: 4, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
             </AreaChart>
           </ResponsiveContainer>
         ) : tab === 'Volume' ? (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={volumeData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <BarChart data={activeVolumeData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.chartGrid} vertical={false} />
               <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={6} />
               <YAxis tick={{ fill: C.dim, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={72} />
@@ -699,21 +806,21 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img
-                  src="/logos/eth-diamond-(color-filled).svg"
-                  alt="ETH"
+                  src={coin === 'ETH' ? '/logos/eth-circle-white.svg' : '/logos/bitcoin-logo.svg'}
+                  alt={coin}
                   style={{ width: '24px', height: '24px', objectFit: 'contain' }}
                 />
-                <span style={{ color: C.text, fontSize: '15px', fontWeight: 700 }}>ETH / USD</span>
+                <span style={{ color: C.text, fontSize: '15px', fontWeight: 700 }}>{coin} / USD</span>
                 <span style={{
                   fontSize: '10px', fontWeight: 600, color: C.cyan,
                   border: `1px solid ${C.cyan}35`, background: `linear-gradient(135deg, ${C.cyan}1a, ${C.cyan}05)`,
                   padding: '2px 10px', borderRadius: '50px', letterSpacing: '0.05em',
                 }}>COINGECKO</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ color: C.text, fontSize: '20px', fontWeight: 800, fontFamily: 'monospace' }}>
-                  {currentPrice ? fmt$(currentPrice) : '—'}
-                </span>
+                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ color: C.text, fontSize: '20px', fontWeight: 800, fontFamily: 'monospace' }}>
+                    {activeCurrentPrice ? fmt$(activeCurrentPrice) : '—'}
+                  </span>
                 {tab === 'Price' && (
                   <div style={{ display: 'flex', gap: '4px', background: C.inputBg, borderRadius: '8px', padding: '3px' }}>
                     {[
@@ -759,7 +866,7 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
             }}>
               <div style={{ display: 'flex', gap: '2px', background: C.inputBg, borderRadius: '8px', padding: '3px' }}>
-                {TABS.map(t => (
+                {TABS.filter(t => !(coin === 'BTC' && t === 'TVL')).map(t => (
                   <button key={t} onClick={() => setTab(t)} style={{
                     padding: '4px 14px', borderRadius: '6px', border: 'none',
                     background: tab === t ? C.chartGrid : 'none',
@@ -787,41 +894,41 @@ export default function ETHPriceChart({ chainlinkPrice, tronicTVL }) {
 
             {/* Fullscreen chart */}
              <div style={{ flex: 1, padding: '8px 0', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              {loading && priceData.length === 0 ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
-                    style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
-                </div>
-              ) : error ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
-                  <span style={{ color: C.dim, fontSize: '13px' }}>CoinGecko rate limit reached</span>
-                  {retryIn > 0 && (
-                    <span style={{ color: C.amber, fontSize: '12px', fontFamily: 'monospace' }}>Retrying in {retryIn}s...</span>
-                  )}
-                </div>
-              ) : tab === 'Price' && chartType === 'candle' ? (
+              {loading && activePriceData.length === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px' }}>
+                    <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
+                      style={{ color: C.dim, fontSize: '13px' }}>Loading chart...</motion.span>
+                  </div>
+                ) : error && activePriceData.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '8px' }}>
+                    <span style={{ color: C.dim, fontSize: '13px' }}>CoinGecko rate limit reached</span>
+                    {retryIn > 0 && (
+                      <span style={{ color: C.amber, fontSize: '12px', fontFamily: 'monospace' }}>Retrying in {retryIn}s...</span>
+                    )}
+                  </div>
+                ) : tab === 'Price' && chartType === 'candle' ? (
                 <div style={{ padding: '0 8px', flex: 1, minHeight: 0 }}>
-                  <CandlestickChart ohlcData={ohlcData} isPositive={isPositive} fullscreen={true} />
+                  <CandlestickChart ohlcData={activeOhlcData} isPositive={activeIsPositive} fullscreen={true} />
                 </div>
               ) : tab === 'Price' ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={priceData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
+                  <AreaChart data={activePriceData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fsGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={lineColor} stopOpacity={0.25}/>
-                        <stop offset="100%" stopColor={lineColor} stopOpacity={0}/>
+                        <stop offset="0%" stopColor={activeLineColor} stopOpacity={0.25}/>
+                        <stop offset="100%" stopColor={activeLineColor} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={C.chartGrid} vertical={false}/>
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis domain={['auto','auto']} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => '$'+v.toLocaleString()} width={76}/>
                     <Tooltip content={<ChartTooltip tab="Price" range={range}/>} cursor={{ stroke: C.cyan, strokeWidth: 1, strokeDasharray: '4 4' }}/>
-                    <Area type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: lineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
+                    <Area type="monotone" dataKey="price" stroke={activeLineColor} strokeWidth={2} fill="url(#fsGrad)" dot={false} activeDot={{ r: 5, fill: activeLineColor, strokeWidth: 0 }} isAnimationActive={true} animationDuration={600} animationEasing="ease-in-out" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : tab === 'Volume' ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={volumeData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
+                  <BarChart data={activeVolumeData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={C.chartGrid} vertical={false}/>
                     <XAxis dataKey="timestamp" tickFormatter={ts => fmtTime(ts, TIME_RANGES.find(x => x.label === range)?.days || '1')} tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" tickCount={8}/>
                     <YAxis tick={{ fill: C.dim, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => fmt$(v)} width={76}/>

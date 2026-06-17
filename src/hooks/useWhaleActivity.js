@@ -2,6 +2,21 @@
 import { useState, useEffect, useRef } from 'react'
 
 const GRAPH_ENDPOINT = 'https://api.studio.thegraph.com/query/1749265/tronic-staking/version/latest'
+const GRAPH_GATEWAY = 'https://gateway.thegraph.com/api/a7d929e390f4bf07126ba6fc1dcf9de2/subgraphs/id/AbF6DWEE3iNwqVa3kyG9YyutLWYcvsNJQ7ihD6fztGNL'
+
+const PROTOCOL_STATS_QUERY = `
+  {
+    protocolStats(id: "global") {
+      currentTVL
+      totalStakersEver
+      totalStakeCount
+      totalUnstakeCount
+      peakTVL
+      totalRewardsDistributed
+      lastUpdatedTimestamp
+    }
+  }
+`
 
 const WHALE_QUERY = `
   {
@@ -33,6 +48,7 @@ export function useWhaleActivity({
   const [chainlinkPrice, setChainlinkPrice] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [protocolData, setProtocolData] = useState(null)
   const currentBlockRef = useRef(10850000)
 
   useEffect(() => {
@@ -64,6 +80,31 @@ export function useWhaleActivity({
           }
         } catch {
           console.warn('Chainlink fetch failed')
+        }
+        // 1b. Fetch BTC/USD Chainlink price
+        let btcPrice = null
+        try {
+          const btcRes = await fetch(
+            `https://eth-sepolia.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                jsonrpc: '2.0', id: 3,
+                method: 'eth_call',
+                params: [{
+                  to: '0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43',
+                  data: '0x50d25bcd',
+                }, 'latest'],
+              }),
+            }
+          )
+          const btcData = await btcRes.json()
+          if (btcData.result) {
+            btcPrice = parseInt(btcData.result, 16) / 1e8
+          }
+        } catch {
+          console.warn('BTC/USD Chainlink fetch failed')
         }
 
         // 2. Fetch latest block number
@@ -99,6 +140,22 @@ export function useWhaleActivity({
         if (graphData.errors) throw new Error(graphData.errors[0].message)
 
         const { stakeds, unstakeds } = graphData.data
+
+        // 3b. Fetch protocolStats dari gateway
+        let protocol = null
+        try {
+          const gatewayRes = await fetch(GRAPH_GATEWAY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: PROTOCOL_STATS_QUERY }),
+          })
+          const gatewayData = await gatewayRes.json()
+          if (gatewayData.data?.protocolStats) {
+            protocol = gatewayData.data.protocolStats
+          }
+        } catch {
+          console.warn('Protocol stats fetch failed')
+        }
 
         // 4. Gabung & sort
         const combined = [
@@ -148,36 +205,49 @@ export function useWhaleActivity({
           stakerNet[tx.user] = (stakerNet[tx.user] || 0) - parseFloat(tx.amount) / 1e18
         })
         const activeStakerSet = new Set(Object.keys(stakerNet).filter(addr => stakerNet[addr] > 0))
-        const uniqueStakers = new Set([...stakeds.map(tx => tx.user), ...unstakeds.map(tx => tx.user)])
         const whaleWallets = new Set(whaleOnly.map(tx => tx.wallet))
-        const avgStake = activeStakerSet.size > 0 ? currentTVL / activeStakerSet.size : 0
+
+        const currentTVLEth = protocol
+          ? parseFloat(protocol.currentTVL) / 1e18
+          : Math.max(0, totalStakedEth - totalUnstakedEth)
+
+        const activeStakersCount = protocol
+          ? protocol.totalStakersEver
+          : activeStakerSet.size
 
         const realStats = {
-          totalStaked: currentTVL.toFixed(4),
+          totalStaked: currentTVLEth.toFixed(4),
           totalStakedUSD: ethPrice
-            ? (currentTVL * ethPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            ? (currentTVLEth * ethPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             : '0.00',
-          activeStakers: activeStakerSet.size,
+          activeStakers: activeStakersCount,
           whaleCount: whaleWallets.size,
-          avgStakeSize: avgStake.toFixed(2),
+          avgStakeSize: activeStakersCount > 0 ? (currentTVLEth / activeStakersCount).toFixed(2) : '0.00',
           ethPrice: ethPrice ? ethPrice.toFixed(2) : null,
-          retailStakers: Math.max(0, uniqueStakers.size - whaleWallets.size),
+          retailStakers: Math.max(0, activeStakersCount - whaleWallets.size),
+          // Data tambahan dari protocolStats
+          peakTVL: protocol ? (parseFloat(protocol.peakTVL) / 1e18).toFixed(4) : null,
+          totalStakeCount: protocol ? protocol.totalStakeCount : null,
+          totalRewardsDistributed: protocol ? (parseFloat(protocol.totalRewardsDistributed) / 1e18).toFixed(6) : null,
         }
 
         const chainlinkObj = ethPrice ? {
           price: ethPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           pair: 'ETH / USD',
           updatedAt: new Date().toLocaleString('en-GB', {
-          day: '2-digit', month: 'numeric', year: 'numeric',
-          hour: '2-digit', minute: '2-digit',
-          timeZone: 'UTC',
-          timeZoneName: 'short',
-        }),
+            day: '2-digit', month: 'numeric', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+            timeZone: 'UTC',
+            timeZoneName: 'short',
+          }),
+          btcPrice: btcPrice ? btcPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null,
+          btcPair: 'BTC / USD',
         } : null
 
         setActivities(whaleOnly)
         setAllActivities(combined)
         setStats(realStats)
+        setProtocolData(protocol)
         setChainlinkPrice(chainlinkObj)
         setError(null)
         currentBlockRef.current = latestBlock
@@ -228,6 +298,7 @@ export function useWhaleActivity({
   }
 
   return {
+    protocolData,
     activities,
     allActivities,
     stats,

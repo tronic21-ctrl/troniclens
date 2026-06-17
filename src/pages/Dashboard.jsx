@@ -1339,31 +1339,84 @@ function OverviewContent() {
         </div>
 
         {chainlinkPrice && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            style={{
-              backgroundColor: COLORS.card,
-              border: `1px solid ${COLORS.cardBorder}`,
-              borderRadius: '8px',
-              padding: '14px 20px',
-              textAlign: 'right',
-              ...(isMobile ? { width: '100%' } : { minWidth: '200px', maxWidth: '280px' }),
-            }}
-          >
-            <p style={{ color: COLORS.textMuted, fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>
-              <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '12px', height: '12px', objectFit: 'contain', marginRight: '6px', verticalAlign: 'middle', opacity: 0.8, filter: whiteLogo }} />
-              Chainlink · {chainlinkPrice.pair}
-            </p>
-            <p style={{ color: COLORS.cyan, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              ${chainlinkPrice.price}
-            </p>
-            <p style={{ color: COLORS.textMuted, fontSize: '11px', marginTop: '2px' }}>
-              Updated {chainlinkPrice.updatedAt}
-            </p>
-          </motion.div>
-        )}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '8px',
+            ...(isMobile ? { width: '100%', alignItems: 'flex-start' } : {}),
+          }}
+        >
+          {/* Label */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <img src="/logos/Chainlink-Symbol-White.svg" alt="Chainlink" style={{ width: '11px', height: '11px', objectFit: 'contain', opacity: 0.5, filter: whiteLogo }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '10px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Chainlink Price Feeds · Live
+            </span>
+          </div>
+
+          {/* Pills row */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '6px',
+            flexWrap: 'wrap',
+          }}>
+
+            {/* ETH/USD pill */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: isMobile ? '6px 10px' : '8px 14px',
+              borderRadius: '50px',
+              background: `linear-gradient(135deg, ${COLORS.cyan}12, ${COLORS.cyan}06)`,
+              border: `1px solid ${COLORS.cyan}30`,
+              boxShadow: `0 0 16px ${COLORS.cyan}10`,
+              flex: isMobile ? 1 : 'none',
+              justifyContent: isMobile ? 'center' : 'flex-start',
+            }}>
+              <img src="/logos/eth-circle-white.svg" alt="ETH" style={{ width: isMobile ? '12px' : '15px', height: isMobile ? '12px' : '15px', objectFit: 'contain', flexShrink: 0 }} />
+              <span style={{ color: COLORS.textMuted, fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>ETH/USD</span>
+              <span style={{
+                fontSize: isMobile ? '12px' : '14px', fontWeight: 700, letterSpacing: '-0.01em',
+                background: 'linear-gradient(135deg, #38bdf8, #7dd3fc)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>
+                ${chainlinkPrice.price}
+              </span>
+            </div>
+
+            {/* BTC/USD pill */}
+            {chainlinkPrice.btcPrice && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: isMobile ? '6px 10px' : '8px 14px',
+                borderRadius: '50px',
+                background: 'linear-gradient(135deg, #f59e0b12, #f59e0b06)',
+                border: '1px solid #f59e0b30',
+                boxShadow: '0 0 16px #f59e0b10',
+                flex: isMobile ? 1 : 'none',
+                justifyContent: isMobile ? 'center' : 'flex-start',
+              }}>
+                <img src="/logos/bitcoin-logo.svg" alt="BTC" style={{ width: isMobile ? '12px' : '15px', height: isMobile ? '12px' : '15px', objectFit: 'contain', flexShrink: 0 }} />
+                <span style={{ color: COLORS.textMuted, fontSize: '9px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>BTC/USD</span>
+                <span style={{
+                  fontSize: isMobile ? '12px' : '14px', fontWeight: 700, letterSpacing: '-0.01em',
+                  background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                }}>
+                  ${chainlinkPrice.btcPrice}
+                </span>
+              </div>
+            )}
+
+          </div>
+        </motion.div>
+      )}
       </div>
 
       {stats && (
@@ -1428,7 +1481,45 @@ function StakingStatsContent() {
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
   }, [])
-  const { stats } = useWhaleActivity({
+
+  const [leaderboard, setLeaderboard] = useState([])
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true)
+
+  const GRAPH_GATEWAY = 'https://gateway.thegraph.com/api/a7d929e390f4bf07126ba6fc1dcf9de2/subgraphs/id/AbF6DWEE3iNwqVa3kyG9YyutLWYcvsNJQ7ihD6fztGNL'
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(GRAPH_GATEWAY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `{
+            stakerProfiles(first: 10, orderBy: totalStaked, orderDirection: desc) {
+              id
+              totalStaked
+              totalRewardsClaimed
+              stakeCount
+              unstakeCount
+              isActive
+              firstStakeTimestamp
+              lastActivityTimestamp
+            }
+          }` }),
+        })
+        const data = await res.json()
+        if (data.data?.stakerProfiles) {
+          setLeaderboard(data.data.stakerProfiles)
+        }
+      } catch (err) {
+        console.warn('Leaderboard fetch failed:', err)
+      } finally {
+        setLeaderboardLoading(false)
+      }
+    }
+    fetchLeaderboard()
+  }, [])
+
+  const { stats, protocolData } = useWhaleActivity({
     refreshInterval: settings.autoRefresh ? settings.refreshInterval * 1000 : null,
     whaleThreshold: settings.whaleThreshold,
   })
@@ -1601,6 +1692,141 @@ function StakingStatsContent() {
           </div>
         </motion.div>
       )}
+      {/* Staker Leaderboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        style={{
+          backgroundColor: COLORS.card,
+          border: `1px solid ${COLORS.cardBorder}`,
+          borderRadius: '12px',
+          overflow: 'hidden',
+          marginTop: settings.compactMode ? '16px' : '24px',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '14px 20px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: COLORS.chartHeader,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <h3 style={{ color: COLORS.text, fontSize: '15px', fontWeight: 600, margin: 0 }}>
+            Top Stakers
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '12px', height: '12px', filter: 'none' }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              The Graph
+            </span>
+          </div>
+        </div>
+
+        {/* Table header */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '28px 1fr 80px' : '28px 1fr 100px 80px 60px',
+          gap: '8px',
+          padding: '8px 20px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: COLORS.chartHeader,
+        }}>
+          {['#', 'WALLET', 'STAKED', ...(isMobile ? [] : ['REWARDS', 'STATUS'])].map(h => (
+            <span key={h} style={{ color: COLORS.textMuted, fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{h}</span>
+          ))}
+        </div>
+
+        {/* Rows */}
+        {leaderboardLoading ? (
+          <div style={{ padding: '24px', textAlign: 'center' }}>
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
+              style={{ color: COLORS.textMuted, fontSize: '13px' }}>Loading leaderboard...</motion.span>
+          </div>
+        ) : leaderboard.length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center' }}>
+            <span style={{ color: COLORS.textMuted, fontSize: '13px' }}>No stakers found</span>
+          </div>
+        ) : leaderboard.map((staker, i) => {
+          const stakedEth = (parseFloat(staker.totalStaked) / 1e18).toFixed(4)
+          const rewardsEth = (parseFloat(staker.totalRewardsClaimed) / 1e18).toFixed(6)
+          const shortAddr = `${staker.id.slice(0, 6)}...${staker.id.slice(-4)}`
+          const rankColors = ['#f59e0b', COLORS.textMuted, '#cd7f32']
+
+          return (
+            <motion.div
+              key={staker.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 * i }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '28px 1fr 80px' : '28px 1fr 100px 80px 60px',
+                gap: '8px',
+                padding: settings.compactMode ? '10px 20px' : '14px 20px',
+                borderBottom: i < leaderboard.length - 1 ? `1px solid ${COLORS.cardBorder}` : 'none',
+                alignItems: 'center',
+              }}
+            >
+              {/* Rank */}
+              <span style={{
+                color: i < 3 ? rankColors[i] : COLORS.textMuted,
+                fontSize: '11px', fontWeight: 700, fontFamily: 'monospace',
+                letterSpacing: '0.02em',
+              }}>
+                #{i + 1}
+              </span>
+
+              {/* Wallet */}
+              <a
+                href={`https://eth-sepolia.blockscout.com/address/${staker.id}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: COLORS.cyan, fontSize: '13px', fontFamily: 'monospace', textDecoration: 'none', fontWeight: 500 }}
+                onMouseEnter={e => e.target.style.textDecoration = 'underline'}
+                onMouseLeave={e => e.target.style.textDecoration = 'none'}
+              >
+                {shortAddr}
+              </a>
+
+              {/* Staked */}
+              <span style={{ color: COLORS.green, fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>
+                {stakedEth} ETH
+              </span>
+
+              {/* Rewards — desktop only */}
+              {!isMobile && (
+                <span style={{ color: COLORS.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>
+                  {rewardsEth} ETH
+                </span>
+              )}
+
+              {/* Status — desktop only */}
+              {!isMobile && (
+                <span style={{
+                  fontSize: '10px', fontWeight: 600, letterSpacing: '0.05em',
+                  padding: '2px 8px', borderRadius: '50px',
+                  backgroundColor: staker.isActive ? `${COLORS.green}15` : `${COLORS.textMuted}15`,
+                  color: staker.isActive ? COLORS.green : COLORS.textMuted,
+                  border: `1px solid ${staker.isActive ? COLORS.green : COLORS.textMuted}30`,
+                }}>
+                  {staker.isActive ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+              )}
+            </motion.div>
+          )
+        })}
+
+        {/* Footer */}
+        <div style={{
+          padding: '8px 20px',
+          borderTop: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: COLORS.chartHeader,
+        }}>
+          <span style={{ color: COLORS.textMuted, fontSize: '10px' }}>
+            Powered by The Graph · tronic-staking v0.0.7 · Arbitrum One
+          </span>
+        </div>
+      </motion.div>
     </div>
   )
 }
@@ -1613,6 +1839,73 @@ function ProtocolHealthContent() {
   const whiteLogo = settings.theme === 'light' ? 'invert(1)' : 'none'
   const [lastSnapshot, setLastSnapshot] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [tvlHistory, setTvlHistory] = useState([])
+  const [tvlLoading, setTvlLoading] = useState(true)
+
+  const GRAPH_GATEWAY = 'https://gateway.thegraph.com/api/a7d929e390f4bf07126ba6fc1dcf9de2/subgraphs/id/AbF6DWEE3iNwqVa3kyG9YyutLWYcvsNJQ7ihD6fztGNL'
+
+  useEffect(() => {
+    const fetchTVLHistory = async () => {
+      try {
+        // Ambil timestamps dari stakeds yang ada dulu
+        const stakesRes = await fetch(GRAPH_GATEWAY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `{
+            stakeds(first: 20, orderBy: blockTimestamp, orderDirection: asc) {
+              blockTimestamp
+            }
+            unstakeds(first: 20, orderBy: blockTimestamp, orderDirection: asc) {
+              blockTimestamp
+            }
+          }` }),
+        })
+        const stakesData = await stakesRes.json()
+
+        if (!stakesData.data) return
+
+        // Kumpulkan unique day IDs dari semua timestamps
+        const allTimestamps = [
+          ...(stakesData.data.stakeds || []).map(s => parseInt(s.blockTimestamp)),
+          ...(stakesData.data.unstakeds || []).map(s => parseInt(s.blockTimestamp)),
+        ]
+
+        const dayIds = [...new Set(
+          allTimestamps.map(ts => Math.floor(ts / 86400) * 86400)
+        )].sort()
+
+        if (dayIds.length === 0) return
+
+        // Query dailyStakingStats untuk setiap unique day
+        const queries = dayIds.map(id => `d${id}: dailyStakingStats(id: "${id}") { date cumulativeTVL dailyStakeVolume dailyStakeCount }`).join('\n')
+
+        const res = await fetch(GRAPH_GATEWAY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: `{ ${queries} }` }),
+        })
+        const data = await res.json()
+
+        if (data.data) {
+          const history = dayIds.map(id => {
+            const entry = data.data[`d${id}`]
+            return {
+              date: entry?.date || new Date(id * 1000).toISOString().slice(5, 10),
+              tvl: entry ? parseFloat(entry.cumulativeTVL) / 1e18 : 0,
+              stakeVolume: entry ? parseFloat(entry.dailyStakeVolume) / 1e18 : 0,
+              stakeCount: entry?.dailyStakeCount || 0,
+            }
+          })
+          setTvlHistory(history)
+        }
+      } catch (err) {
+        console.warn('TVL history fetch failed:', err)
+      } finally {
+        setTvlLoading(false)
+      }
+    }
+    fetchTVLHistory()
+  }, [])
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -1653,8 +1946,9 @@ function ProtocolHealthContent() {
       logo: '/logos/eth-diamond-(color-filled).svg' 
     },
     { label: 'ReentrancyGuard', status: 'Active', detail: 'OpenZeppelin v5.6.1', color: COLORS.green, logo: '/logos/OZ-Logo-FavIconColor.svg' },
-    { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.3 · 100%', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
-    { label: 'Chainlink Feed', status: 'Live', detail: 'ETH/USD · Sepolia · 8 decimals', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
+    { label: 'The Graph Subgraph', status: 'Synced', detail: 'tronic-staking · v0.0.7 · 100% · Arbitrum One', link: 'https://thegraph.com/explorer/subgraphs/AbF6DWEE3iNwqVa3kyG9YyutLWYcvsNJQ7ihD6fztGNL', color: COLORS.green, logo: '/logos/The Graph - Logomark - Light.svg' },
+    { label: 'Chainlink ETH/USD', status: 'Live', detail: 'ETH/USD · Sepolia · 0x694AA...325306', link: 'https://sepolia.etherscan.io/address/0x694AA1769357215DE4FAC081bf1f309aDC325306', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
+    { label: 'Chainlink BTC/USD', status: 'Live', detail: 'BTC/USD · Sepolia · 0x1b44F...51Ee43', link: 'https://sepolia.etherscan.io/address/0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43', color: COLORS.cyan, logo: '/logos/Chainlink-Symbol-White.svg' },
     {
       label: '0G Storage', status: 'Connected',
       detail: lastSnapshot
@@ -1708,7 +2002,7 @@ function ProtocolHealthContent() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>
-                <img src={check.logo} alt={check.label} style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.95, filter: ['The Graph Subgraph', 'Chainlink Feed', '0G Storage'].includes(check.label) ? whiteLogo : 'none' }} />
+                <img src={check.logo} alt={check.label} style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.95, filter: ['The Graph Subgraph', 'Chainlink ETH/USD', 'Chainlink BTC/USD', '0G Storage'].includes(check.label) ? whiteLogo : 'none' }} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ 
@@ -1813,6 +2107,105 @@ function ProtocolHealthContent() {
           </motion.div>
         ))}
       </div>
+      {/* TVL History Timeline */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        style={{
+          backgroundColor: COLORS.card,
+          border: `1px solid ${COLORS.cardBorder}`,
+          borderRadius: '14px',
+          overflow: 'hidden',
+          marginTop: settings.compactMode ? '16px' : '24px',
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '14px 20px',
+          borderBottom: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: COLORS.chartHeader,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <h3 style={{ color: COLORS.text, fontSize: '15px', fontWeight: 600, margin: 0 }}>
+            {isMobile ? 'Net Staking Flow' : 'Daily Net Staking Flow · All Activity'}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <img src="/logos/The Graph - Logomark - Light.svg" alt="The Graph" style={{ width: '12px', height: '12px' }} />
+            <span style={{ color: COLORS.textMuted, fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              The Graph
+            </span>
+          </div>
+        </div>
+
+        <div style={{ padding: '20px 24px' }}>
+          {tvlLoading ? (
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }}
+              style={{ color: COLORS.textMuted, fontSize: '13px' }}>Loading TVL history...</motion.span>
+          ) : tvlHistory.every(d => d.tvl === 0) ? (
+            <span style={{ color: COLORS.textMuted, fontSize: '13px' }}>No historical data available yet</span>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {tvlHistory.map((day, i) => {
+                const maxTVL = Math.max(...tvlHistory.map(d => d.tvl), 0.001)
+                const pct = (day.tvl / maxTVL) * 100
+                return (
+                  <div key={day.date} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Date */}
+                    <span style={{ color: COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace', width: isMobile ? '36px' : '50px', flexShrink: 0 }}>
+                      {isMobile ? day.date.slice(5) : day.date}
+                    </span>
+
+                    {/* Bar */}
+                    <div style={{ flex: 1, minWidth: 0, height: '6px', backgroundColor: COLORS.cardBorder, borderRadius: '3px', overflow: 'hidden' }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.8, delay: 0.05 * i }}
+                        style={{
+                          height: '100%',
+                          borderRadius: '3px',
+                          background: day.tvl > 0
+                            ? `linear-gradient(90deg, ${COLORS.cyan}80, ${COLORS.cyan})`
+                            : COLORS.cardBorder,
+                        }}
+                      />
+                    </div>
+
+                    {/* TVL value */}
+                    <span style={{ color: day.tvl > 0 ? COLORS.cyan : COLORS.textMuted, fontSize: '11px', fontFamily: 'monospace', width: isMobile ? '70px' : '80px',
+                        fontSize: isMobile ? '10px' : '11px', textAlign: 'right', flexShrink: 0 }}>
+                      {day.tvl > 0 ? `${day.tvl.toFixed(4)} ETH` : '—'}
+                    </span>
+
+                    {/* Stake count badge */}
+                    {!isMobile && day.stakeCount > 0 && (
+                      <span style={{
+                        fontSize: '9px', fontWeight: 600, color: COLORS.green,
+                        border: `1px solid ${COLORS.green}30`, borderRadius: '50px',
+                        padding: '1px 6px', flexShrink: 0,
+                      }}>
+                        +{day.stakeCount} tx
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '8px 20px',
+          borderTop: `1px solid ${COLORS.cardBorder}`,
+          backgroundColor: COLORS.chartHeader,
+        }}>
+          <span style={{ color: COLORS.textMuted, fontSize: '10px' }}>
+            Powered by The Graph · tronic-staking v0.0.7 · Arbitrum One
+          </span>
+        </div>
+      </motion.div>
     </div>
   )
 }

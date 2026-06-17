@@ -1,7 +1,7 @@
 // api/price-history.js
 // Vercel Serverless — CoinGecko price history proxy with 5-min cache
 
-let cache = {} // Key: days, Value: { data, timestamp }
+let cache = {} // Key: `${coin}-${days}`, Value: { data, timestamp }
 const CACHE_TTL = 5 * 60 * 1000 // 5 menit
 
 export default async function handler(req, res) {
@@ -9,8 +9,8 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET')
 
   const now = Date.now()
-  const { days = '1' } = req.query
-  const cacheKey = String(days)
+  const { days = '1', coin = 'ethereum' } = req.query
+  const cacheKey = `${coin}-${String(days)}`
 
   // Return dari cache kalau masih fresh
   if (cache[cacheKey] && now - cache[cacheKey].timestamp < CACHE_TTL) {
@@ -18,14 +18,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Exclude interval parameter for hourly/minutely data as CoinGecko only supports interval=daily
-    const url = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=${days}` + (parseFloat(days) > 90 ? '&interval=daily' : '')
+    const url = `https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}` + (parseFloat(days) > 90 ? '&interval=daily' : '')
 
-    // Line chart data
-    const priceRes = await fetch(
-      url,
-      { headers: { 'Accept': 'application/json' } }
-    )
+    const priceRes = await fetch(url, { headers: { 'Accept': 'application/json' } })
 
     if (!priceRes.ok) throw new Error(`CoinGecko error: ${priceRes.status}`)
 
@@ -34,7 +29,7 @@ export default async function handler(req, res) {
     // OHLC data untuk candlestick
     const ohlcDays = parseFloat(days) < 1 ? '1' : String(Math.round(parseFloat(days)))
     const ohlcRes = await fetch(
-      `https://api.coingecko.com/api/v3/coins/ethereum/ohlc?vs_currency=usd&days=${ohlcDays}`,
+      `https://api.coingecko.com/api/v3/coins/${coin}/ohlc?vs_currency=usd&days=${ohlcDays}`,
       { headers: { 'Accept': 'application/json' } }
     )
 
@@ -54,7 +49,6 @@ export default async function handler(req, res) {
     return res.status(200).json(result)
 
   } catch (err) {
-    // Kalau error tapi ada cache lama, return cache lama daripada error
     if (cache[cacheKey]) {
       return res.status(200).json({ ...cache[cacheKey].data, cached: true, stale: true })
     }

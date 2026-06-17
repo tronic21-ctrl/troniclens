@@ -1,0 +1,10 @@
+<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="44" cy="44" r="44" fill="#627EEA"/>
+  <g transform="translate(44, 44) scale(0.038) translate(-960, -960)">
+    <path d="m960 730.9-539.8 245.4 539.8 319.1 539.8-319.1z" fill="white" opacity="0.6"/>
+    <path d="m420.2 976.3 539.8 319.1v-564.5-650.3z" fill="white" opacity="0.45"/>
+    <path d="m960 80.6v650.3 564.5l539.8-319.1z" fill="white" opacity="0.8"/>
+    <path d="m420.2 1078.7 539.8 760.7v-441.8z" fill="white" opacity="0.45"/>
+    <path d="m960 1397.6v441.8l540.2-760.7z" fill="white" opacity="0.8"/>
+  </g>
+</svg>
