@@ -14,7 +14,7 @@ TronicLens is a DeFi Staking Intelligence Cockpit built for **ETHOnline 2026**. 
 |----------|------|
 | **Live App** | [troniclens.vercel.app](https://troniclens.vercel.app) |
 | GitHub | [tronic21-ctrl/troniclens](https://github.com/tronic21-ctrl/troniclens) |
-| Subgraph | [tronic-staking v0.0.3](https://api.studio.thegraph.com/query/1749265/tronic-staking/version/latest) |
+| Subgraph | [tronic-staking v0.0.7](https://thegraph.com/explorer/subgraphs/AbF6DWEE3iNwqVa3kyG9YyutLWYcvsNJQ7ihD6fztGNL) |
 | StorageScan | [0G Galileo Testnet](https://storagescan-galileo.0g.ai) |
 | StakingContract | [0x89907e8F...06926](https://eth-sepolia.blockscout.com/address/0x89907e8F6CB6468b2c8fe2d3814249881eF06926) |
 
@@ -40,7 +40,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 | Instrument | Tech | Purpose |
 |-----------|------|---------|
 | Radar — Live Activity | **The Graph** | Index & query on-chain staking events |
-| Altimeter — Price Feed | **Chainlink** | Real-time ETH/USD price from Sepolia oracle |
+| Altimeter — Price Feed | **Chainlink** | Dual price feeds: ETH/USD + BTC/USD from Sepolia oracles |
 | Alert System | **Chainlink + The Graph** | Smart alerts for whale movements + ETH price |
 | Black Box — Archive | **0G Storage** | Permanent decentralized snapshot of whale activity |
 | AI Co-Pilot | **0G Compute** | Qwen2.5 AI analysis — TEE verified |
@@ -52,7 +52,7 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ### Overview
 - Real-time stat cards: Total Staked, Active Stakers, Whale Wallets, Avg Stake Size
-- Chainlink ETH/USD price feed (live from Sepolia)
+- Dual Chainlink price feeds — ETH/USD + BTC/USD (live from Sepolia oracles)
 - ETH price chart with line, candlestick, and TVL overlay (CoinGecko + DeFiLlama)
 - Whale Activity Feed powered by The Graph
 
@@ -72,8 +72,8 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
   - GovernanceContract (Sepolia, timelock 120s)
   - StakingGovernance bridge (Sepolia, verified)
   - ReentrancyGuard (OpenZeppelin v5.6.1)
-  - The Graph Subgraph (tronic-staking v0.0.3, 100% synced)
-  - Chainlink Feed (ETH/USD, 8 decimals, Live)
+  - The Graph Subgraph (tronic-staking v0.0.7, published Arbitrum One)
+  - Chainlink ETH/USD Feed (8 decimals, Live) + BTC/USD Feed (8 decimals, Live)
   - 0G Storage (last snapshot with clickable root hash → StorageScan)
 
 ### AI Insights
@@ -121,6 +121,16 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 ---
 
 ## What's New
+
+### v1.7 — June 2026
+- **Dual Chainlink Price Feeds** — BTC/USD feed added (0x1b44F...51Ee43, Sepolia) alongside ETH/USD, displayed as pill badges in Overview
+- **BTC/USD Price Chart** — tab switching ETH ↔ BTC in price chart, same line/candlestick/volume support
+- **The Graph Schema v0.0.7** — extended with 3 mutable aggregation entities: StakerProfile, DailyStakingStats, ProtocolStats
+- **Subgraph published to Arbitrum One** — production endpoint via The Graph Network gateway
+- **Top Stakers Leaderboard** — ranked table in Staking Stats powered by StakerProfile entity
+- **Net Staking Flow Timeline** — historical activity chart in Protocol Health powered by DailyStakingStats entity
+- **ProtocolStats integration** — TVL and staker count sourced from on-chain aggregate
+- **Version bump** — v1.7.0
 
 ### v1.6 — June 2026
 - **Dual Theme System** — dark/light toggle via Settings > Appearance, persists to localStorage
@@ -189,8 +199,8 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 Frontend:       React + Vite + Framer Motion
 State:          React Context (SettingsContext + useThemeColors hook)
 Smart Contract: Solidity ^0.8.0 + OpenZeppelin v5.6.1
-Indexing:       The Graph (subgraph: tronic-staking v0.0.3)
-Price Feed:     Chainlink ETH/USD (Sepolia)
+Indexing:       The Graph (subgraph: tronic-staking v0.0.7, published Arbitrum One)
+Price Feed:     Chainlink ETH/USD + BTC/USD (Sepolia)
 Price Chart:    CoinGecko API + DeFiLlama API (via Vercel serverless proxy)
 Storage:        0G Storage (Galileo Testnet)
 AI Compute:     0G Compute — Qwen2.5-omni-7b (TEE verified)
@@ -335,8 +345,8 @@ This will:
 | Sponsor | Prize | Integration |
 |---------|-------|-------------|
 | **0G Network** | $15,000 | 0G Storage snapshots + 0G Compute AI Insights (TEE verified) + Smart Alerts AI proxy |
-| **The Graph** | $15,000 | Native subgraph (tronic-staking v0.0.3, 100% synced) — used across all pages |
-| **Chainlink** | TBD | Live ETH/USD price feed on Sepolia — Overview, Staking Stats, Smart Alerts |
+| **The Graph** | $15,000 | Native subgraph (tronic-staking v0.0.7, Arbitrum One) — StakerProfile, DailyStakingStats, ProtocolStats entities — used across all pages |
+| **Chainlink** | TBD | Dual price feeds: ETH/USD + BTC/USD (Sepolia) — Overview, Staking Stats, Smart Alerts, Price Chart |
 
 **Project by:** Riko Tronic ([@tronic21-ctrl](https://github.com/tronic21-ctrl))  
 *Economics Graduate · Web3 Developer · Indonesia*

@@ -897,7 +897,7 @@ function AboutContent() {
           style={{ textAlign: 'center', padding: '8px' }}
         >
           <p style={{ color: COLORS.textMuted, fontSize: '11px' }}>
-            TronicLens v1.5.0 · Built for ETHOnline 2026 · Open Source
+            TronicLens v1.7.0 · Built for ETHOnline 2026 · Open Source
           </p>
         </motion.div>
 
@@ -1726,7 +1726,7 @@ function StakingStatsContent() {
         {/* Table header */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '28px 1fr 80px' : '28px 1fr 100px 80px 60px',
+          gridTemplateColumns: isMobile ? '24px 1fr 72px' : '28px 1fr 100px 80px 60px',
           gap: '8px',
           padding: '8px 20px',
           borderBottom: `1px solid ${COLORS.cardBorder}`,
@@ -1761,7 +1761,7 @@ function StakingStatsContent() {
               transition={{ delay: 0.05 * i }}
               style={{
                 display: 'grid',
-                gridTemplateColumns: isMobile ? '28px 1fr 80px' : '28px 1fr 100px 80px 60px',
+                gridTemplateColumns: isMobile ? '24px 1fr 72px' : '28px 1fr 100px 80px 60px',
                 gap: '8px',
                 padding: settings.compactMode ? '10px 20px' : '14px 20px',
                 borderBottom: i < leaderboard.length - 1 ? `1px solid ${COLORS.cardBorder}` : 'none',
@@ -1789,7 +1789,7 @@ function StakingStatsContent() {
               </a>
 
               {/* Staked */}
-              <span style={{ color: COLORS.green, fontSize: '13px', fontWeight: 600, fontFamily: 'monospace' }}>
+              <span style={{ color: COLORS.green, fontSize: isMobile ? '11px' : '13px', fontWeight: 600, fontFamily: 'monospace' }}>
                 {stakedEth} ETH
               </span>
 
