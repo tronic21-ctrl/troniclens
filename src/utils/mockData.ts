@@ -1,7 +1,33 @@
-// mockData.js
+// utils/mockData.ts
 // Mock data untuk TronicLens — akan diganti dengan data real dari The Graph
 
-export const mockWhaleActivity = [
+export interface WhaleActivity {
+  id: string;
+  address: string;
+  action: 'STAKE' | 'UNSTAKE';
+  amount: string;
+  amountUSD: string;
+  timestamp: number;
+  txHash: string;
+}
+
+export interface MockStats {
+  totalStaked: string;
+  totalStakedUSD: string;
+  activeStakers: number;
+  whaleCount: number;
+  avgStakeSize: string;
+  ethPrice: string;
+}
+
+export interface ChainlinkPrice {
+  pair: string;
+  price: string;
+  updatedAt: string;
+  decimals: number;
+}
+
+export const mockWhaleActivity: WhaleActivity[] = [
   {
     id: '0x1a2b...3c4d',
     address: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
@@ -47,23 +73,23 @@ export const mockWhaleActivity = [
     timestamp: Date.now() - 1000 * 60 * 60, // 1 jam lalu
     txHash: '0x456abc789def',
   },
-]
+];
 
-export const mockStats = {
+export const mockStats: MockStats = {
   totalStaked: '12,450.75',
   totalStakedUSD: '28,860,487.25',
   activeStakers: 142,
   whaleCount: 18, // staker dengan > 100 ETH
   avgStakeSize: '87.68',
   ethPrice: '2,318.47',
-}
+};
 
-export const mockChainlinkPrice = {
+export const mockChainlinkPrice: ChainlinkPrice = {
   pair: 'ETH / USD',
   price: '2,318.47',
   updatedAt: new Date().toLocaleString(),
   decimals: 8,
-}
+};
 
 // Threshold untuk dikategorikan sebagai whale (dalam ETH)
-export const WHALE_THRESHOLD = 100
+export const WHALE_THRESHOLD = 100;

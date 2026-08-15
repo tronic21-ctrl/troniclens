@@ -122,7 +122,14 @@ TronicLens is built like a cockpit — every instrument serves a purpose:
 
 ## What's New
 
-### v1.7 — June 2026
+### v2.0.0 — August 2026
+- **Major Architecture Rewrite** — Completely migrated from Java/Vanilla to Next.js (App Router) + TypeScript.
+- **GSAP Animations & UX** — Added highly refined, buttery-smooth animations, scroll-driven reveals, magnetic buttons, and Lenis smooth scrolling.
+- **UI/UX Overhaul** — A massive shift to a "humanized", clean, minimalist, and premium design (moving away from the old sci-fi/AI-generated template feel).
+- **Onboarding & Splash Screen** — Completely redesigned the onboarding popup and splash screen with glassmorphic elements, elegant typography, and a professional aesthetic.
+- **Version bump** — v2.0.0
+
+### v1.7.0 — June 2026
 - **Dual Chainlink Price Feeds** — BTC/USD feed added (0x1b44F...51Ee43, Sepolia) alongside ETH/USD, displayed as pill badges in Overview
 - **BTC/USD Price Chart** — tab switching ETH ↔ BTC in price chart, same line/candlestick/volume support
 - **The Graph Schema v0.0.7** — extended with 3 mutable aggregation entities: StakerProfile, DailyStakingStats, ProtocolStats
