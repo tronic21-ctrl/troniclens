@@ -701,6 +701,9 @@ export default function ETHPriceChart({
           : "0 8px 32px 0 rgba(0, 0, 0, 0.35)",
         overflow: "hidden",
         marginBottom: "0px",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <style>{`

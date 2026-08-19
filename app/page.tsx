@@ -34,6 +34,7 @@ function AppInner() {
       setMobile(m);
       if (m) setCollapsed(true);
     };
+    handleResize(); // Initialize immediately on mount
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);

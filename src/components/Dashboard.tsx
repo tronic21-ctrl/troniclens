@@ -874,6 +874,14 @@ function AboutContent() {
   const COLORS = useThemeColors();
   const { settings } = useSettings();
   const whiteLogo = settings.theme === "light" ? "invert(1)" : "none";
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const builderLinks = [
     {
