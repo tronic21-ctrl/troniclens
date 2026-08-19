@@ -999,7 +999,7 @@ function AboutContent() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(280px, 1fr))",
             gap: "16px",
           }}
         >
@@ -2069,7 +2069,7 @@ function StakingStatsContent() {
           style={{
             display: "grid",
             gridTemplateColumns: isMobile
-              ? "24px 1fr 72px"
+              ? "24px 1fr 85px"
               : "28px 1fr 100px 80px 60px",
             gap: "8px",
             padding: "8px 20px",
@@ -2129,7 +2129,7 @@ function StakingStatsContent() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: isMobile
-                    ? "24px 1fr 72px"
+                    ? "24px 1fr 85px"
                     : "28px 1fr 100px 80px 60px",
                   gap: "8px",
                   padding: settings.compactMode ? "10px 20px" : "14px 20px",

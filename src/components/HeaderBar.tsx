@@ -74,7 +74,9 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
               filter: settings.theme === "light" ? "invert(1) brightness(0)" : "none",
             }}
           />
-          <span style={{ color: "var(--text-muted)", fontSize: "11px", letterSpacing: "0.05em" }}>ORACLES</span>
+          {!mobile && (
+            <span style={{ color: "var(--text-muted)", fontSize: "11px", letterSpacing: "0.05em" }}>ORACLES</span>
+          )}
           <span style={{ color: "var(--text)", fontWeight: 700 }}>ETH/USD</span>
           <span style={{ color: "var(--cyan)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>$<AnimatedNumber value={parseFloat(String(ethPrice).replace(/,/g, '')) || 0} decimals={2} /></span>
 

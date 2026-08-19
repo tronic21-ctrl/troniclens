@@ -730,9 +730,9 @@ export default function ETHPriceChart({
         <div
           style={{
             display: "flex",
-            alignItems: "flex-start",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "flex-start",
             justifyContent: "space-between",
-            flexWrap: "wrap",
             gap: "12px",
             marginBottom: "12px",
           }}
