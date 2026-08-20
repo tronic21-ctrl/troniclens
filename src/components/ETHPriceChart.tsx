@@ -701,7 +701,7 @@ export default function ETHPriceChart({
           : "0 8px 32px 0 rgba(0, 0, 0, 0.35)",
         overflow: "hidden",
         marginBottom: "0px",
-        height: "100%",
+        height: isMobile ? "auto" : "100%",
         display: "flex",
         flexDirection: "column",
       }}
@@ -725,7 +725,7 @@ export default function ETHPriceChart({
       {/* ── HEADER ── */}
       <div
         style={{
-          padding: "16px 20px 12px",
+          padding: isMobile ? "12px 16px 8px" : "16px 20px 12px",
           borderBottom: `1px solid ${C.chartBorder}`,
           backgroundColor: C.chartHeader,
         }}
@@ -795,7 +795,7 @@ export default function ETHPriceChart({
               <span
                 style={{
                   color: C.text,
-                  fontSize: "26px",
+                  fontSize: isMobile ? "22px" : "26px",
                   fontWeight: 800,
                   fontFamily: "var(--font-mono)",
                   letterSpacing: "-0.02em",
@@ -1617,7 +1617,8 @@ export default function ETHPriceChart({
 
             <div
               style={{
-                flex: 1,
+                flex: isMobile ? "none" : 1,
+                height: isMobile ? "220px" : "auto",
                 padding: "8px 0",
                 display: "flex",
                 flexDirection: "column",
