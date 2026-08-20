@@ -35,7 +35,7 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
         position: "sticky",
         top: 0,
         zIndex: 90,
-        height: "80px",
+        height: mobile ? "56px" : "80px",
         background: "var(--topbar)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
@@ -43,8 +43,8 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: mobile ? "0 16px" : "0 32px",
-        gap: "16px",
+        padding: mobile ? "0 10px" : "0 32px",
+        gap: mobile ? "8px" : "16px",
       }}
     >
       {/* Left: Chainlink Oracles Marquee */}
@@ -53,14 +53,15 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            gap: mobile ? "6px" : "10px",
             backgroundColor: settings.theme === "light" ? "rgba(56, 189, 248, 0.08)" : "rgba(56, 189, 248, 0.05)",
             border: `1px solid var(--border)`,
             borderRadius: "50px",
-            padding: "6px 16px",
-            fontSize: "13px",
+            padding: mobile ? "4px 10px" : "6px 16px",
+            fontSize: mobile ? "11px" : "13px",
             fontWeight: 600,
-            whiteSpace: "nowrap"
+            whiteSpace: "nowrap",
+            overflow: "hidden",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -111,7 +112,8 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
           </div>
         )}
 
-        {/* Theme Switcher */}
+        {/* Theme Switcher - hidden on mobile to save space */}
+        {!mobile && (
         <motion.button
           whileHover={{ scale: 1.05, backgroundColor: "var(--border)" }}
           whileTap={{ scale: 0.95 }}
@@ -148,6 +150,7 @@ export default function HeaderBar({ mobile }: HeaderBarProps) {
             </svg>
           )}
         </motion.button>
+        )}
 
         {/* Connect Wallet Button */}
         <Magnetic strength={0.4}>

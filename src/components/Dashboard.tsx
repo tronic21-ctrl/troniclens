@@ -1668,9 +1668,9 @@ function OverviewContent() {
         )}
 
         {/* Bento Box 4: Chart */}
-        <div className="bento-item bento-card" style={{ gridColumn: isMobile ? "span 1" : "span 12", gridRow: "span 3", padding: "24px", overflow: "hidden" }}>
+        <div className="bento-item bento-card" style={{ gridColumn: isMobile ? "span 1" : "span 12", gridRow: isMobile ? "auto" : "span 3", padding: isMobile ? "16px" : "24px", overflow: "hidden" }}>
           <p style={{ color: "var(--text-muted)", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px", margin: 0 }}>Staking Volume Trend</p>
-          <div style={{ margin: "16px -24px 0px -24px" }}>
+          <div style={{ margin: isMobile ? "12px -16px 0px -16px" : "16px -24px 0px -24px" }}>
             <ETHPriceChart chainlinkPrice={chainlinkPrice || undefined} tronicTVL={stats?.totalStaked} />
           </div>
         </div>
@@ -2077,10 +2077,10 @@ function StakingStatsContent() {
           style={{
             display: "grid",
             gridTemplateColumns: isMobile
-              ? "24px 1fr 85px"
+              ? "24px 1fr 100px"
               : "28px 1fr 100px 80px 60px",
             gap: "8px",
-            padding: "8px 20px",
+            padding: isMobile ? "8px 12px" : "8px 20px",
             borderBottom: `1px solid ${COLORS.cardBorder}`,
             backgroundColor: COLORS.chartHeader,
           }}
@@ -2137,10 +2137,12 @@ function StakingStatsContent() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: isMobile
-                    ? "24px 1fr 85px"
+                    ? "24px 1fr 100px"
                     : "28px 1fr 100px 80px 60px",
                   gap: "8px",
-                  padding: settings.compactMode ? "10px 20px" : "14px 20px",
+                  padding: isMobile
+                    ? (settings.compactMode ? "10px 12px" : "14px 12px")
+                    : (settings.compactMode ? "10px 20px" : "14px 20px"),
                   borderBottom:
                     i < leaderboard.length - 1
                       ? `1px solid ${COLORS.cardBorder}`
