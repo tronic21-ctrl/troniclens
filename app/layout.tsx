@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import LenisProvider from "@/src/components/LenisProvider";
-import CustomCursor from "@/src/components/CustomCursor";
-import MouseTrail from "@/src/components/MouseTrail";
 
 export const metadata: Metadata = {
   title: "TronicLens | On-Chain Intelligence",
@@ -50,8 +48,6 @@ export default function RootLayout({
         }}
       >
         <LenisProvider>
-          <CustomCursor />
-          <MouseTrail />
           {children}
         </LenisProvider>
       </body>
