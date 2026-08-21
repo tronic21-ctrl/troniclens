@@ -1860,7 +1860,7 @@ function StakingStatsContent() {
             },
             {
               label: "ETH Price",
-              value: `$${stats.ethPrice}`,
+              value: stats.ethPrice ? `$${stats.ethPrice}` : "—",
               sub: "via Chainlink",
               color: COLORS.text,
             },

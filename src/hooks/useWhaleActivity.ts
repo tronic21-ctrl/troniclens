@@ -106,7 +106,9 @@ export function useWhaleActivity({
         setLoading(true);
 
         const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY;
-        const alchemyUrl = `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`;
+        const alchemyUrl = alchemyKey 
+          ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}` 
+          : "https://ethereum-sepolia-rpc.publicnode.com";
 
         const rpcBatch = async (calls: { id: number; method: string; params: any[] }[]) => {
           try {
