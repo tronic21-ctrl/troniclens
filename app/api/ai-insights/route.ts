@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       },
       signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
-        model: 'Qwen2.5-7B-Instruct',
+        model: 'qwen2.5-omni',
         messages: [
           {
             role: 'system',

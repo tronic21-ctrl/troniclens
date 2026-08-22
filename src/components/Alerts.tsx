@@ -420,7 +420,7 @@ function AlertCard({
                     <p style={{ color: COLORS.textMuted, fontSize: "11px" }}>
                       ✦ Powered by{" "}
                       <span style={{ color: COLORS.purple }}>0G Compute</span> ·
-                      Qwen2.5-7b-instruct
+                      Qwen2.5-omni
                     </p>
                   </>
                 )}
