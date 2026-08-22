@@ -284,14 +284,12 @@ function ConnectPrompt() {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <rect x="2" y="5" width="14" height="14" rx="2" />
-          <circle cx="9" cy="12" r="2.5" />
-          <line x1="9" y1="10.5" x2="9" y2="12" />
-          <line x1="9" y1="12" x2="10.5" y2="12" />
-          <rect x="17" y="8" width="5" height="4" rx="1" />
-          <ellipse cx="19.5" cy="10" rx="2" ry="1" />
-          <path d="M16 9.5 L13 8" />
-          <path d="M16 11 L13 13" />
+          <rect width="18" height="18" x="3" y="3" rx="2"/>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 9v1"/>
+          <path d="M12 14v1"/>
+          <path d="M9 12h1"/>
+          <path d="M14 12h1"/>
         </svg>
       </motion.div>
       <div>
